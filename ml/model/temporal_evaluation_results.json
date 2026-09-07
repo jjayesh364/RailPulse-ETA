@@ -1,0 +1,66 @@
+{
+    "evaluation_methodology": "temporal_walk_forward_split",
+    "dataset": "data/generated/historical_train_data.csv",
+    "dataset_type": "synthetic_indian_railways_corridor_simulation",
+    "total_records": 55000,
+    "train_window": {
+        "records": 44000,
+        "ratio": 0.8,
+        "description": "Chronologically earlier records (uninterrupted by future data)"
+    },
+    "test_window": {
+        "records": 11000,
+        "ratio": 0.2,
+        "description": "Chronologically later unseen records (strictly out-of-time)"
+    },
+    "baseline_model": {
+        "description": "Current delay only (zero incremental delay assumed)",
+        "mae": 22.6017,
+        "rmse": 26.1413,
+        "r2": -2.6992
+    },
+    "naive_baseline": {
+        "description": "Current delay only (zero incremental delay assumed)",
+        "mae": 22.6017,
+        "rmse": 26.1413,
+        "r2": -2.6992
+    },
+    "statistical_baseline": {
+        "description": "Hierarchical operational-condition stratified mean (time bucket, congestion, caution order, weather, headway)",
+        "mae": 6.2897,
+        "rmse": 8.2352,
+        "r2": 0.6329,
+        "fallback_levels": [
+            "L1: (time_bucket, cong_bucket, speed_restr, weather_bucket, preceding_delay_bucket)",
+            "L2: (time_bucket, cong_bucket, speed_restr, preceding_delay_bucket)",
+            "L3: (time_bucket, cong_bucket, speed_restr)",
+            "L4: (time_bucket, cong_bucket)",
+            "L5: (time_bucket)",
+            "L6: global_train_mean"
+        ]
+    },
+    "gradient_boosting": {
+        "description": "Trained GradientBoostingRegressor with feature engineering",
+        "mae": 3.945,
+        "rmse": 4.943,
+        "r2": 0.8677
+    },
+    "random_forest": {
+        "description": "Trained RandomForestRegressor with feature engineering",
+        "mae": 4.7222,
+        "rmse": 6.0584,
+        "r2": 0.8013
+    },
+    "improvement_over_baseline": {
+        "mae_reduction_minutes": 18.6567,
+        "mae_improvement_percent": 82.55,
+        "rmse_reduction_minutes": 21.1983,
+        "rmse_improvement_percent": 81.09
+    },
+    "improvement_over_statistical_baseline": {
+        "mae_reduction_minutes": 2.3446,
+        "mae_improvement_percent": 37.28,
+        "rmse_reduction_minutes": 3.2922,
+        "rmse_improvement_percent": 39.98
+    }
+}

@@ -1,5 +1,3 @@
-.gitignore content below
-
 # Python
 __pycache__/
 *.py[cod]
@@ -30,6 +28,10 @@ ml/model/*.joblib
 ml/model/*.pkl
 ml/model/*.json
 !ml/model/.gitkeep
+!ml/model/eta_model.joblib
+!ml/model/preprocessor.joblib
+!ml/model/temporal_evaluation_results.json
+!ml/model/feature_importance.json
 
 # Generated data
 data/generated/
