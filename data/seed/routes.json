@@ -1,0 +1,120 @@
+[
+  {
+    "train_id": "12951",
+    "stops": [
+      {"station_code": "MMCT", "station_name": "Mumbai Central", "arrival": null, "departure": "17:00", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "BRC", "station_name": "Vadodara", "arrival": "21:20", "departure": "21:25", "distance_from_source": 392, "day": 1, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "RTM", "station_name": "Ratlam", "arrival": "00:25", "departure": "00:28", "distance_from_source": 653, "day": 2, "stop_number": 3, "halt_minutes": 3},
+      {"station_code": "KOTA", "station_name": "Kota", "arrival": "03:15", "departure": "03:20", "distance_from_source": 919, "day": 2, "stop_number": 4, "halt_minutes": 5},
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": "08:35", "departure": null, "distance_from_source": 1384, "day": 2, "stop_number": 5, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12301",
+    "stops": [
+      {"station_code": "HWH", "station_name": "Howrah", "arrival": null, "departure": "17:05", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "DHN", "station_name": "Dhanbad", "arrival": "19:55", "departure": "20:00", "distance_from_source": 259, "day": 1, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "DDU", "station_name": "Pt. DD Upadhyaya", "arrival": "00:45", "departure": "00:55", "distance_from_source": 666, "day": 2, "stop_number": 3, "halt_minutes": 10},
+      {"station_code": "PRYJ", "station_name": "Prayagraj", "arrival": "02:43", "departure": "02:45", "distance_from_source": 818, "day": 2, "stop_number": 4, "halt_minutes": 2},
+      {"station_code": "CNB", "station_name": "Kanpur Central", "arrival": "04:50", "departure": "04:55", "distance_from_source": 1013, "day": 2, "stop_number": 5, "halt_minutes": 5},
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": "09:55", "departure": null, "distance_from_source": 1447, "day": 2, "stop_number": 6, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12002",
+    "stops": [
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": null, "departure": "06:00", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "AGC", "station_name": "Agra Cantt", "arrival": "07:50", "departure": "07:55", "distance_from_source": 195, "day": 1, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "GWL", "station_name": "Gwalior", "arrival": "09:23", "departure": "09:28", "distance_from_source": 313, "day": 1, "stop_number": 3, "halt_minutes": 5},
+      {"station_code": "VGLJ", "station_name": "VGL Jhansi", "arrival": "10:45", "departure": "10:50", "distance_from_source": 410, "day": 1, "stop_number": 4, "halt_minutes": 5},
+      {"station_code": "RKMP", "station_name": "Rani Kamlapati", "arrival": "14:35", "departure": null, "distance_from_source": 707, "day": 1, "stop_number": 5, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12622",
+    "stops": [
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": null, "departure": "21:05", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "AGC", "station_name": "Agra Cantt", "arrival": "23:25", "departure": "23:30", "distance_from_source": 195, "day": 1, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "VGLJ", "station_name": "VGL Jhansi", "arrival": "02:35", "departure": "02:45", "distance_from_source": 410, "day": 2, "stop_number": 3, "halt_minutes": 10},
+      {"station_code": "ET", "station_name": "Itarsi", "arrival": "07:15", "departure": "07:25", "distance_from_source": 701, "day": 2, "stop_number": 4, "halt_minutes": 10},
+      {"station_code": "NGP", "station_name": "Nagpur", "arrival": "11:55", "departure": "12:00", "distance_from_source": 999, "day": 2, "stop_number": 5, "halt_minutes": 5},
+      {"station_code": "BPQ", "station_name": "Balharshah", "arrival": "15:25", "departure": "15:30", "distance_from_source": 1208, "day": 2, "stop_number": 6, "halt_minutes": 5},
+      {"station_code": "BZA", "station_name": "Vijayawada", "arrival": "21:55", "departure": "22:05", "distance_from_source": 1657, "day": 2, "stop_number": 7, "halt_minutes": 10},
+      {"station_code": "MAS", "station_name": "Chennai Central", "arrival": "06:15", "departure": null, "distance_from_source": 2182, "day": 3, "stop_number": 8, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12860",
+    "stops": [
+      {"station_code": "HWH", "station_name": "Howrah", "arrival": null, "departure": "14:05", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "KGP", "station_name": "Kharagpur", "arrival": "15:43", "departure": "15:48", "distance_from_source": 115, "day": 1, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "TATA", "station_name": "Tatanagar", "arrival": "17:38", "departure": "17:45", "distance_from_source": 249, "day": 1, "stop_number": 3, "halt_minutes": 7},
+      {"station_code": "BSP", "station_name": "Bilaspur", "arrival": "01:20", "departure": "01:30", "distance_from_source": 717, "day": 2, "stop_number": 4, "halt_minutes": 10},
+      {"station_code": "R", "station_name": "Raipur", "arrival": "03:00", "departure": "03:05", "distance_from_source": 828, "day": 2, "stop_number": 5, "halt_minutes": 5},
+      {"station_code": "NGP", "station_name": "Nagpur", "arrival": "07:40", "departure": "07:45", "distance_from_source": 1129, "day": 2, "stop_number": 6, "halt_minutes": 5},
+      {"station_code": "IGP", "station_name": "Igatpuri", "arrival": "18:25", "departure": "18:30", "distance_from_source": 1833, "day": 2, "stop_number": 7, "halt_minutes": 5},
+      {"station_code": "CSMT", "station_name": "Mumbai CSMT", "arrival": "21:20", "departure": null, "distance_from_source": 1968, "day": 2, "stop_number": 8, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12903",
+    "stops": [
+      {"station_code": "MMCT", "station_name": "Mumbai Central", "arrival": null, "departure": "18:45", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "BRC", "station_name": "Vadodara", "arrival": "23:55", "departure": "00:05", "distance_from_source": 392, "day": 1, "stop_number": 2, "halt_minutes": 10},
+      {"station_code": "RTM", "station_name": "Ratlam", "arrival": "03:55", "departure": "04:00", "distance_from_source": 653, "day": 2, "stop_number": 3, "halt_minutes": 5},
+      {"station_code": "KOTA", "station_name": "Kota", "arrival": "07:30", "departure": "07:40", "distance_from_source": 919, "day": 2, "stop_number": 4, "halt_minutes": 10},
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": "13:50", "departure": "14:05", "distance_from_source": 1384, "day": 2, "stop_number": 5, "halt_minutes": 15},
+      {"station_code": "UMB", "station_name": "Ambala Cantt", "arrival": "18:00", "departure": "18:15", "distance_from_source": 1583, "day": 2, "stop_number": 6, "halt_minutes": 15},
+      {"station_code": "ASR", "station_name": "Amritsar", "arrival": "23:45", "departure": null, "distance_from_source": 1893, "day": 2, "stop_number": 7, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12627",
+    "stops": [
+      {"station_code": "SBC", "station_name": "KSR Bengaluru", "arrival": null, "departure": "19:20", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "BPQ", "station_name": "Balharshah", "arrival": "09:40", "departure": "09:45", "distance_from_source": 1198, "day": 2, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "NGP", "station_name": "Nagpur", "arrival": "12:55", "departure": "13:00", "distance_from_source": 1407, "day": 2, "stop_number": 3, "halt_minutes": 5},
+      {"station_code": "ET", "station_name": "Itarsi", "arrival": "17:50", "departure": "18:00", "distance_from_source": 1705, "day": 2, "stop_number": 4, "halt_minutes": 10},
+      {"station_code": "VGLJ", "station_name": "VGL Jhansi", "arrival": "23:25", "departure": "23:35", "distance_from_source": 2096, "day": 2, "stop_number": 5, "halt_minutes": 10},
+      {"station_code": "AGC", "station_name": "Agra Cantt", "arrival": "02:45", "departure": "02:50", "distance_from_source": 2311, "day": 3, "stop_number": 6, "halt_minutes": 5},
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": "09:00", "departure": null, "distance_from_source": 2406, "day": 3, "stop_number": 7, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12723",
+    "stops": [
+      {"station_code": "HYB", "station_name": "Hyderabad Deccan", "arrival": null, "departure": "06:00", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "SC", "station_name": "Secunderabad", "arrival": "06:20", "departure": "06:25", "distance_from_source": 9, "day": 1, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "KZJ", "station_name": "Kazipet", "arrival": "08:18", "departure": "08:20", "distance_from_source": 141, "day": 1, "stop_number": 3, "halt_minutes": 2},
+      {"station_code": "BPQ", "station_name": "Balharshah", "arrival": "12:10", "departure": "12:15", "distance_from_source": 376, "day": 1, "stop_number": 4, "halt_minutes": 5},
+      {"station_code": "NGP", "station_name": "Nagpur", "arrival": "15:20", "departure": "15:25", "distance_from_source": 584, "day": 1, "stop_number": 5, "halt_minutes": 5},
+      {"station_code": "ET", "station_name": "Itarsi", "arrival": "20:00", "departure": "20:05", "distance_from_source": 882, "day": 1, "stop_number": 6, "halt_minutes": 5},
+      {"station_code": "VGLJ", "station_name": "VGL Jhansi", "arrival": "01:20", "departure": "01:30", "distance_from_source": 1267, "day": 2, "stop_number": 7, "halt_minutes": 10},
+      {"station_code": "AGC", "station_name": "Agra Cantt", "arrival": "04:00", "departure": "04:05", "distance_from_source": 1482, "day": 2, "stop_number": 8, "halt_minutes": 5},
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": "07:40", "departure": null, "distance_from_source": 1677, "day": 2, "stop_number": 9, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12259",
+    "stops": [
+      {"station_code": "SDAH", "station_name": "Sealdah", "arrival": null, "departure": "17:00", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "DHN", "station_name": "Dhanbad", "arrival": "20:15", "departure": "20:20", "distance_from_source": 266, "day": 1, "stop_number": 2, "halt_minutes": 5},
+      {"station_code": "DDU", "station_name": "Pt. DD Upadhyaya", "arrival": "01:25", "departure": "01:35", "distance_from_source": 671, "day": 2, "stop_number": 3, "halt_minutes": 10},
+      {"station_code": "CNB", "station_name": "Kanpur Central", "arrival": "05:40", "departure": "05:45", "distance_from_source": 1018, "day": 2, "stop_number": 4, "halt_minutes": 5},
+      {"station_code": "NDLS", "station_name": "New Delhi", "arrival": "11:25", "departure": "11:40", "distance_from_source": 1458, "day": 2, "stop_number": 5, "halt_minutes": 15},
+      {"station_code": "BKN", "station_name": "Bikaner", "arrival": "17:15", "departure": null, "distance_from_source": 1916, "day": 2, "stop_number": 6, "halt_minutes": 0}
+    ]
+  },
+  {
+    "train_id": "12433",
+    "stops": [
+      {"station_code": "MAS", "station_name": "Chennai Central", "arrival": null, "departure": "06:05", "distance_from_source": 0, "day": 1, "stop_number": 1, "halt_minutes": 0},
+      {"station_code": "BZA", "station_name": "Vijayawada", "arrival": "11:40", "departure": "11:50", "distance_from_source": 431, "day": 1, "stop_number": 2, "halt_minutes": 10},
+      {"station_code": "BPQ", "station_name": "Balharshah", "arrival": "17:55", "departure": "18:00", "distance_from_source": 881, "day": 1, "stop_number": 3, "halt_minutes": 5},
+      {"station_code": "NGP", "station_name": "Nagpur", "arrival": "20:55", "departure": "21:00", "distance_from_source": 1089, "day": 1, "stop_number": 4, "halt_minutes": 5},
+      {"station_code": "VGLJ", "station_name": "VGL Jhansi", "arrival": "05:25", "departure": "05:30", "distance_from_source": 1782, "day": 2, "stop_number": 5, "halt_minutes": 5},
+      {"station_code": "AGC", "station_name": "Agra Cantt", "arrival": "07:55", "departure": "08:00", "distance_from_source": 1997, "day": 2, "stop_number": 6, "halt_minutes": 5},
+      {"station_code": "NZM", "station_name": "Hazrat Nizamuddin", "arrival": "10:30", "departure": null, "distance_from_source": 2175, "day": 2, "stop_number": 7, "halt_minutes": 0}
+    ]
+  }
+]

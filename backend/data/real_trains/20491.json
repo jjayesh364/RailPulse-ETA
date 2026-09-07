@@ -1,0 +1,244 @@
+{
+  "train_number": "20491",
+  "train_name": "Jaisalmer - Sabarmati SF Express",
+  "train_type": "Superfast Express",
+  "source_station": "JSM",
+  "source_station_name": "Jaisalmer",
+  "destination_station": "SBIB",
+  "destination_station_name": "Sabarmati BG",
+  "distance": 759.0,
+  "running_days": "Daily",
+  "data_source": "NTES / DataMeet",
+  "stops": [
+    {
+      "seq": 1,
+      "code": "JSM",
+      "name": "Jaisalmer",
+      "arr": null,
+      "dep": "15:30",
+      "halt": 0,
+      "day": 1,
+      "dist": 0.0
+    },
+    {
+      "seq": 2,
+      "code": "POK",
+      "name": "Pokaran",
+      "arr": "16:50",
+      "dep": "17:10",
+      "halt": 20,
+      "day": 1,
+      "dist": 103.0
+    },
+    {
+      "seq": 3,
+      "code": "RDRA",
+      "name": "Ramdevra",
+      "arr": "17:32",
+      "dep": "17:35",
+      "halt": 3,
+      "day": 1,
+      "dist": 114.0
+    },
+    {
+      "seq": 4,
+      "code": "PLCJ",
+      "name": "Phalodi Jn",
+      "arr": "18:15",
+      "dep": "18:20",
+      "halt": 5,
+      "day": 1,
+      "dist": 160.0
+    },
+    {
+      "seq": 5,
+      "code": "MWT",
+      "name": "Marwar Lohwat",
+      "arr": "18:40",
+      "dep": "18:42",
+      "halt": 2,
+      "day": 1,
+      "dist": 189.0
+    },
+    {
+      "seq": 6,
+      "code": "OSN",
+      "name": "Osiyan",
+      "arr": "19:30",
+      "dep": "19:32",
+      "halt": 2,
+      "day": 1,
+      "dist": 233.0
+    },
+    {
+      "seq": 7,
+      "code": "TIW",
+      "name": "Tivari",
+      "arr": "19:48",
+      "dep": "19:50",
+      "halt": 2,
+      "day": 1,
+      "dist": 254.0
+    },
+    {
+      "seq": 8,
+      "code": "MMY",
+      "name": "Marwar Mathanya",
+      "arr": "20:03",
+      "dep": "20:05",
+      "halt": 2,
+      "day": 1,
+      "dist": 264.0
+    },
+    {
+      "seq": 9,
+      "code": "RKB",
+      "name": "Raika Bagh",
+      "arr": "20:40",
+      "dep": "20:42",
+      "halt": 2,
+      "day": 1,
+      "dist": 296.0
+    },
+    {
+      "seq": 10,
+      "code": "JU",
+      "name": "Jodhpur Jn",
+      "arr": "21:00",
+      "dep": "21:10",
+      "halt": 10,
+      "day": 1,
+      "dist": 298.0
+    },
+    {
+      "seq": 11,
+      "code": "BGKT",
+      "name": "Bhagat Ki Kothi",
+      "arr": "21:20",
+      "dep": "21:22",
+      "halt": 2,
+      "day": 1,
+      "dist": 302.0
+    },
+    {
+      "seq": 12,
+      "code": "LUNI",
+      "name": "Luni Jn",
+      "arr": "21:49",
+      "dep": "21:52",
+      "halt": 3,
+      "day": 1,
+      "dist": 330.0
+    },
+    {
+      "seq": 13,
+      "code": "SMR",
+      "name": "Samdari Jn",
+      "arr": "22:40",
+      "dep": "22:45",
+      "halt": 5,
+      "day": 1,
+      "dist": 378.0
+    },
+    {
+      "seq": 14,
+      "code": "MKSR",
+      "name": "Mokalsar",
+      "arr": "23:16",
+      "dep": "23:18",
+      "halt": 2,
+      "day": 1,
+      "dist": 404.0
+    },
+    {
+      "seq": 15,
+      "code": "JOR",
+      "name": "Jalor",
+      "arr": "23:42",
+      "dep": "23:45",
+      "halt": 3,
+      "day": 1,
+      "dist": 437.0
+    },
+    {
+      "seq": 16,
+      "code": "MON",
+      "name": "Modran",
+      "arr": "00:13",
+      "dep": "00:16",
+      "halt": 3,
+      "day": 2,
+      "dist": 471.0
+    },
+    {
+      "seq": 17,
+      "code": "MBNL",
+      "name": "Marwar Bhinmal",
+      "arr": "00:37",
+      "dep": "00:40",
+      "halt": 3,
+      "day": 2,
+      "dist": 499.0
+    },
+    {
+      "seq": 18,
+      "code": "RNV",
+      "name": "Raniwara",
+      "arr": "01:07",
+      "dep": "01:10",
+      "halt": 3,
+      "day": 2,
+      "dist": 531.0
+    },
+    {
+      "seq": 19,
+      "code": "DHA",
+      "name": "Dhanera",
+      "arr": "01:42",
+      "dep": "01:44",
+      "halt": 2,
+      "day": 2,
+      "dist": 566.0
+    },
+    {
+      "seq": 20,
+      "code": "BLDI",
+      "name": "Bhildi Jn",
+      "arr": "02:30",
+      "dep": "02:35",
+      "halt": 5,
+      "day": 2,
+      "dist": 601.0
+    },
+    {
+      "seq": 21,
+      "code": "PTN",
+      "name": "Patan",
+      "arr": "03:15",
+      "dep": "03:17",
+      "halt": 2,
+      "day": 2,
+      "dist": 652.0
+    },
+    {
+      "seq": 22,
+      "code": "MSH",
+      "name": "Mahesana Jn",
+      "arr": "03:50",
+      "dep": "03:52",
+      "halt": 2,
+      "day": 2,
+      "dist": 692.0
+    },
+    {
+      "seq": 23,
+      "code": "SBIB",
+      "name": "Sabarmati BG",
+      "arr": "05:15",
+      "dep": null,
+      "halt": 0,
+      "day": 2,
+      "dist": 759.0
+    }
+  ]
+}

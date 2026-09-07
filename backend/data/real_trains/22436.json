@@ -1,0 +1,54 @@
+{
+  "train_number": "22436",
+  "train_name": "Vande Bharat Express",
+  "train_type": "Vande Bharat",
+  "source_station": "NDLS",
+  "source_station_name": "New Delhi",
+  "destination_station": "BSB",
+  "destination_station_name": "Varanasi Jn",
+  "distance": 771.0,
+  "running_days": "Tue,Wed,Fri,Sat,Sun",
+  "data_source": "NTES / DataMeet",
+  "stops": [
+    {
+      "seq": 1,
+      "code": "NDLS",
+      "name": "New Delhi",
+      "arr": null,
+      "dep": "06:00",
+      "halt": 0,
+      "day": 1,
+      "dist": 0.0
+    },
+    {
+      "seq": 2,
+      "code": "CNB",
+      "name": "Kanpur Central",
+      "arr": "10:08",
+      "dep": "10:10",
+      "halt": 2,
+      "day": 1,
+      "dist": 441.0
+    },
+    {
+      "seq": 3,
+      "code": "PRYJ",
+      "name": "Prayagraj Jn",
+      "arr": "12:08",
+      "dep": "12:10",
+      "halt": 2,
+      "day": 1,
+      "dist": 635.0
+    },
+    {
+      "seq": 4,
+      "code": "BSB",
+      "name": "Varanasi Jn",
+      "arr": "14:00",
+      "dep": null,
+      "halt": 0,
+      "day": 1,
+      "dist": 771.0
+    }
+  ]
+}
