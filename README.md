@@ -88,7 +88,7 @@ SIH-Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains/
 │   │   ├── pages/           # Dashboard, LiveTrains, TrainDetails, PassengerView, ControlRoom, Analytics, Network, Alerts, About
 │   │   ├── hooks/           # useTrains, useWebSocket, useSimulation
 │   │   ├── services/        # Axios API client & WebSocket listener
-│   │   ├── types/           # TypeScript definitions
+│   │   ├── types/            # TypeScript definitions
 │   │   ├── App.tsx          # Router and global layout
 │   │   └── main.tsx         # Frontend bootstrap
 │   ├── package.json
@@ -112,42 +112,93 @@ SIH-Dynamic Forecast of Expected Time of Arrival (ETA) for Coaching Trains/
 
 ---
 
-## 🚀 5. How to Run Locally (Step-by-Step)
+## 🚀 5. How to Run RailPulse ETA Locally
 
-### Prerequisites
-- **Python 3.10+** installed and added to PATH.
-- **Node.js 18+** and **npm** installed.
+### ⭐ Quick Start for Teammates (Windows)
 
----
+After cloning the repository, teammates **do not need to manually create a Python virtual environment or install the project's Python/npm dependencies**. `start-windows.bat` handles the setup automatically.
 
-### Option A: One-Click Startup (Windows)
-Simply double-click `start-windows.bat` in the project root or execute in Command Prompt/PowerShell:
+### Step 1 — Install Git
+
+Git is required to clone the repository. Install Git for Windows if it is not already installed.
+
+Then clone the project:
+
+```bash
+git clone https://github.com/jjayesh364/RailPulse-ETA.git
+cd RailPulse-ETA
+```
+
+### Step 2 — Start RailPulse
+
+From the project root, simply **double-click `start-windows.bat`**.
+
+Or run it from Command Prompt:
+
 ```bat
 start-windows.bat
 ```
+
+The startup script automatically:
+
+1. Checks whether Python is installed.
+2. If Python is missing, attempts to install **Python 3.12** using Windows Package Manager (`winget`).
+3. Checks whether Node.js and npm are installed.
+4. If Node.js is missing, attempts to install **Node.js LTS** using `winget`.
+5. Creates `backend\.venv` if it does not exist.
+6. Installs/checks backend Python dependencies from `backend\requirements.txt`.
+7. Installs frontend npm dependencies if `frontend\node_modules` does not exist.
+8. Starts the FastAPI backend on `http://localhost:8000`.
+9. Starts the React/Vite frontend on `http://localhost:3000`.
+10. Opens the RailPulse dashboard automatically in the browser.
+
+> **First run:** The setup can take several minutes because dependencies may need to be downloaded and installed. An internet connection is required during this initial setup.
+
+### Prerequisites
+
+- **Windows 10/11** recommended.
+- **Git** is required to clone the repository.
+- The startup script can automatically install Python and Node.js when **Windows Package Manager (`winget`)** is available.
+- If `winget` is unavailable or automatic installation fails, install **Python 3.10+** and **Node.js 20+** manually, then run `start-windows.bat` again.
+
+### After RailPulse Starts
+
+The script opens:
+
+- **Frontend Dashboard:** `http://localhost:3000`
+- **Backend API:** `http://localhost:8000`
+- **Interactive API Docs:** `http://localhost:8000/docs`
+
+Keep the **RailPulse Backend** and **RailPulse Frontend** windows open while using the application.
+
+To stop RailPulse, close those two windows.
 
 ---
 
 ### Option B: Manual Startup
 
+If you prefer to run the services manually:
+
 #### 1. Setup & Run Backend
 ```bash
 # Open Terminal 1
 cd backend
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
-- **Backend API URL:** [http://localhost:8000](http://localhost:8000)
-- **Interactive Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Backend API URL:** `http://localhost:8000`
+- **Interactive Swagger Docs:** `http://localhost:8000/docs`
 
 #### 2. Setup & Run Frontend
 ```bash
 # Open Terminal 2
 cd frontend
 npm install
-npm run dev
+npm run dev -- --host 127.0.0.1 --port 3000
 ```
-- **Frontend Dashboard URL:** [http://localhost:3000](http://localhost:3000) (or `http://localhost:5173`)
+- **Frontend Dashboard URL:** `http://localhost:3000`
 
 ---
 
@@ -226,7 +277,7 @@ python backend/scripts/import_real_train_data.py
 
 ---
 
-## 🧪 8. Running Automated Tests
+## 🧪 9. Running Automated Tests
 
 Run backend tests:
 ```bash
@@ -236,7 +287,7 @@ pytest backend/tests/test_api.py -v
 
 ---
 
-## 🔮 9. Future Integration with Indian Railways
+## 🔮 10. Future Integration with Indian Railways
 
 In a production rollout, `MockRailwayDataSource` in `backend/app/simulation/data_source.py` will be replaced with:
 1. **CRIS & COA APIs:** For live train movement, schedule updates, and rake positioning.
