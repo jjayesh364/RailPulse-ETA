@@ -65,8 +65,10 @@ if not %errorlevel%==0 goto PIP_ERROR
 echo.
 echo [3/4] Installing/checking frontend dependencies...
 if exist "%FRONTEND%\node_modules" goto NODE_MODULES_READY
-npm.cmd install
+cd /d "%FRONTEND%"
+npm.cmd install --no-audit --no-fund
 if not %errorlevel%==0 goto NPM_ERROR
+cd /d "%ROOT%"
 
 :NODE_MODULES_READY
 
@@ -119,7 +121,7 @@ exit /b 1
 :PIP_ERROR
 echo.
 echo ERROR: Backend dependency installation failed.
-echo Check the Backend window/output above and try again.
+echo Check the output above and try again.
 pause
 exit /b 1
 
