@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions
 
 cd /d "%~dp0"
 set "ROOT=%~dp0"
@@ -23,10 +23,21 @@ if %errorlevel%==0 goto PYTHON_OK
 where py >nul 2>&1
 if %errorlevel%==0 goto PYTHON_LAUNCHER_OK
 
-echo.
-echo ERROR: Python was not found.
-echo Please install Python 3.10+ and make sure it is available from Command Prompt.
-echo Then run this file again.
+where winget >nul 2>&1
+if not %errorlevel%==0 goto PYTHON_INSTALL_ERROR
+
+echo Python was not found. Installing Python 3.12 via Windows Package Manager...
+winget install --id Python.Python.3.12 -e --source winget --accept-source-agreements --accept-package-agreements
+if not %errorlevel%==0 goto PYTHON_INSTALL_ERROR
+
+set "PATH=%PATH%;%LocalAppData%\Programs\Python\Python312;%LocalAppData%\Programs\Python\Python312\Scripts;%ProgramFiles%\Python312;%ProgramFiles%\Python312\Scripts"
+where py >nul 2>&1
+if %errorlevel%==0 goto PYTHON_LAUNCHER_OK
+where python >nul 2>&1
+if %errorlevel%==0 goto PYTHON_OK
+
+echo Python was installed, but Windows has not refreshed the current command path yet.
+echo Please close this window and double-click start-windows.bat again.
 pause
 exit /b 1
 
@@ -42,14 +53,31 @@ echo Python found:
 
 :PYTHON_READY
 where node >nul 2>&1
-if not %errorlevel%==0 goto NODE_ERROR
-where npm >nul 2>&1
-if not %errorlevel%==0 goto NODE_ERROR
+if %errorlevel%==0 goto NODE_OK
 
+where winget >nul 2>&1
+if not %errorlevel%==0 goto NODE_INSTALL_ERROR
+
+echo Node.js was not found. Installing Node.js LTS via Windows Package Manager...
+winget install --id OpenJS.NodeJS.LTS -e --source winget --accept-source-agreements --accept-package-agreements
+if not %errorlevel%==0 goto NODE_INSTALL_ERROR
+
+set "PATH=%PATH%;%ProgramFiles%\nodejs;%LocalAppData%\Programs\nodejs"
+where node >nul 2>&1
+if %errorlevel%==0 goto NODE_OK
+
+echo Node.js was installed, but Windows has not refreshed the current command path yet.
+echo Please close this window and double-click start-windows.bat again.
+pause
+exit /b 1
+
+:NODE_OK
 echo Node found:
 node --version
-echo.
+where npm >nul 2>&1
+if not %errorlevel%==0 goto NODE_INSTALL_ERROR
 
+echo.
 echo [2/4] Preparing Python environment...
 if exist "%VENV_PYTHON%" goto VENV_READY
 
@@ -71,7 +99,6 @@ if not %errorlevel%==0 goto NPM_ERROR
 cd /d "%ROOT%"
 
 :NODE_MODULES_READY
-
 echo.
 echo [4/4] Starting RailPulse services...
 echo.
@@ -88,7 +115,6 @@ start "RailPulse Frontend" cmd /k "cd /d ""%FRONTEND%"" && npm.cmd run dev -- --
 echo Waiting for frontend startup...
 timeout /t 4 /nobreak >nul
 start "" "http://localhost:3000"
-
 echo.
 echo ===================================================
 echo  RailPulse ETA is running!
@@ -103,11 +129,19 @@ echo.
 pause
 exit /b 0
 
-:NODE_ERROR
+:PYTHON_INSTALL_ERROR
 echo.
-echo ERROR: Node.js and npm were not found.
-echo Please install Node.js 20+ and make sure node/npm are available from Command Prompt.
-echo Then run this file again.
+echo ERROR: Python could not be installed automatically.
+echo Please install Python 3.10+ manually and run this file again.
+echo Windows Package Manager (winget) may be unavailable on this PC.
+pause
+exit /b 1
+
+:NODE_INSTALL_ERROR
+echo.
+echo ERROR: Node.js could not be installed automatically.
+echo Please install Node.js 20+ manually and run this file again.
+echo Windows Package Manager (winget) may be unavailable on this PC.
 pause
 exit /b 1
 
