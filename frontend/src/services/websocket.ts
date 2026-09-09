@@ -1,8 +1,11 @@
 type Callback = (data: any) => void;
 
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const defaultWsUrl = apiUrl.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:').replace(/\/api\/?$/, '/ws/live');
+
 class WebSocketService {
   private ws: WebSocket | null = null;
-  private url: string = 'ws://localhost:8000/ws/live';
+  private url: string = import.meta.env.VITE_WS_URL || defaultWsUrl;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private callbacks: { [key: string]: Callback[] } = {
