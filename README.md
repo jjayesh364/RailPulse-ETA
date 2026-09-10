@@ -50,7 +50,7 @@ Accurate forecasting of the Expected Time of Arrival (ETA) for coaching trains i
                                 │
                     ┌───────────▼───────────┐
                     │ Machine Learning (GBM)│
-                    │ - 20+ Dynamic Features │
+                    │ - 20+ Dynamic Features│
                     │ - Feature Importance  │
                     │ - Confidence Scorer   │
                     └───────────────────────┘
