@@ -7,79 +7,156 @@ interface ETAPanelProps {
 }
 
 const ETAPanel = ({ prediction, lastUpdated }: ETAPanelProps) => {
-  if (!prediction) return <div className="p-4 text-center text-slate-500">Loading ETA...</div>;
-
-  const delayColor = prediction.predicted_delay_minutes < 5 ? 'text-emerald-500' : 
-                     prediction.predicted_delay_minutes < 15 ? 'text-amber-500' : 'text-red-500';
+  if (!prediction) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
+        Loading ETA...
+      </div>
+    );
+  }
 
   const formatTime = (timeStr: string) => {
     if (!timeStr) return '--:--';
-    if (timeStr.includes(':') && timeStr.length <= 5) return timeStr;
+
+    if (timeStr.includes(':') && timeStr.length <= 5) {
+      return timeStr;
+    }
+
     try {
       const d = new Date(timeStr);
-      if (isNaN(d.getTime())) return timeStr;
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (isNaN(d.getTime())) {
+        return timeStr;
+      }
+
+      return d.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     } catch {
       return timeStr;
     }
   };
 
+  const confidenceColor =
+    prediction.confidence_level === 'High'
+      ? 'text-emerald-600'
+      : prediction.confidence_level === 'Medium'
+        ? 'text-amber-600'
+        : 'text-red-600';
+
+  const confidenceBg =
+    prediction.confidence_level === 'High'
+      ? 'bg-emerald-50 border-emerald-100'
+      : prediction.confidence_level === 'Medium'
+        ? 'bg-amber-50 border-amber-100'
+        : 'bg-red-50 border-red-100';
+
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 p-6 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-bl-full -z-10"></div>
-      
-      <div className="flex justify-between items-start mb-6">
+    <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+      {/* Subtle decorative background */}
+      <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-bl-full bg-slate-50" />
+
+      {/* HEADER */}
+      <div className="relative flex items-start justify-between gap-6 border-b border-slate-100 pb-5">
+
         <div>
-          <h3 className="text-slate-400 font-medium mb-1">Next Station</h3>
-          <h2 className="text-2xl font-bold text-white">{prediction.station_name}</h2>
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50">
+              <Clock className="h-4 w-4 text-red-600" />
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Next Station
+              </p>
+
+              <h2 className="mt-1 text-xl font-bold text-slate-900">
+                {prediction.station_name}
+              </h2>
+            </div>
+          </div>
         </div>
-        <div className="text-right">
-          <div className="text-xs text-slate-500 mb-1">Confidence</div>
-          <div className={`text-sm font-bold ${
-            prediction.confidence_level === 'High' ? 'text-emerald-500' : 
-            prediction.confidence_level === 'Medium' ? 'text-amber-500' : 'text-red-500'
-          }`}>
+
+        {/* CONFIDENCE */}
+        <div
+          className={`relative rounded-lg border px-3 py-2 text-right ${confidenceBg}`}
+        >
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            Confidence
+          </div>
+
+          <div className={`mt-1 text-sm font-bold ${confidenceColor}`}>
             {prediction.confidence}% {prediction.confidence_level}
           </div>
         </div>
       </div>
 
-      <div className="flex items-end gap-6 mb-6">
+      {/* ARRIVAL TIMES */}
+      <div className="relative flex flex-wrap items-end gap-8 py-6">
+
         <div>
-          <div className="text-xs text-slate-500 mb-1 flex items-center gap-1">
-            <Clock className="w-3 h-3" /> Predicted Arrival
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+            <Clock className="h-3.5 w-3.5" />
+            Predicted Arrival
           </div>
-          <div className="text-4xl font-bold text-white tracking-tight">
+
+          <div className="text-4xl font-bold tracking-tight text-slate-900">
             {formatTime(prediction.predicted_arrival)}
           </div>
         </div>
-        
-        <div>
-          <div className="text-xs text-slate-500 mb-1">Scheduled</div>
-          <div className="text-xl text-slate-400 line-through">
+
+        <div className="pb-1">
+          <div className="mb-1 text-xs font-medium text-slate-400">
+            Scheduled
+          </div>
+
+          <div className="text-lg font-medium text-slate-400 line-through">
             {formatTime(prediction.scheduled_arrival)}
           </div>
         </div>
+
       </div>
 
+      {/* DELAY ALERT */}
       {prediction.predicted_delay_minutes > 0 && (
-        <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 p-3 rounded-md mb-4">
-          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+        <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-100 bg-red-50 p-4">
+
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white">
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+          </div>
+
           <div>
-            <div className="text-sm font-semibold text-red-400">
+            <div className="text-sm font-semibold text-red-700">
               Running {prediction.predicted_delay_minutes} minutes late
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              Top factor: {prediction.factors?.[0]?.factor_name || 'Network conditions'}
+
+            <div className="mt-1 text-xs text-slate-500">
+              Top factor:{' '}
+              <span className="font-medium text-slate-700">
+                {prediction.factors?.[0]?.factor_name || 'Network conditions'}
+              </span>
             </div>
           </div>
+
         </div>
       )}
 
-      <div className="text-xs text-slate-500 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        Live ETA updated {lastUpdated}
+      {/* LIVE STATUS */}
+      <div className="flex items-center gap-2 text-xs text-slate-400">
+
+        <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+
+        <span>
+          Live ETA updated{' '}
+          <span className="font-medium text-slate-600">
+            {lastUpdated}
+          </span>
+        </span>
+
       </div>
+
     </div>
   );
 };

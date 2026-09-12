@@ -13,6 +13,7 @@ import {
   CheckCircle,
   TrendingUp,
   Target,
+  Activity,
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -93,37 +94,52 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="flex flex-1 flex-col gap-5 bg-slate-50">
+    <div className="flex flex-1 flex-col gap-6 pb-10">
 
-      {/* Page Header */}
-      <div className="flex items-end justify-between">
+      {/* ========================================================= */}
+      {/* HEADER */}
+      {/* ========================================================= */}
+
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-700">
-            Operations Dashboard
-          </p>
+          <div className="flex items-center gap-3">
 
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-            Network Overview
-          </h1>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              Network Overview
+            </h1>
 
-          <p className="mt-1 text-sm text-slate-500">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Live
+            </span>
+
+          </div>
+
+          <p className="mt-2 text-sm text-slate-500">
             Real-time operational view of active coaching trains
           </p>
         </div>
 
-        <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm lg:flex">
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm">
+          <Activity className="h-4 w-4 text-emerald-600" />
           Monitoring network
         </div>
+
       </div>
 
-      {/* KPI Cards */}
+
+      {/* ========================================================= */}
+      {/* KPI CARDS */}
+      {/* ========================================================= */}
+
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+
         <KPICard
           title="Active Trains"
           value={activeCount}
           icon={Train}
-          colorClass="bg-blue-500 text-blue-500"
+          colorClass="bg-red-500 text-red-500"
         />
 
         <KPICard
@@ -151,31 +167,72 @@ const Dashboard = () => {
           title="Avg Delay"
           value={`${avgDelayVal}m`}
           icon={TrendingUp}
-          colorClass="bg-indigo-500 text-indigo-500"
+          colorClass="bg-blue-500 text-blue-500"
         />
 
         <KPICard
           title="Model MAE"
           value="3.9m"
           icon={Target}
-          colorClass="bg-purple-500 text-purple-500"
+          colorClass="bg-slate-500 text-slate-500"
         />
+
       </div>
 
-      {/* Main Operations Area */}
+
+      {/* ========================================================= */}
+      {/* MAIN OPERATIONS */}
+      {/* ========================================================= */}
+
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-4">
 
-        {/* Map */}
-        <div className="lg:col-span-3 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="h-[520px] xl:h-[560px]">
+        {/* ======================================================= */}
+        {/* LIVE NETWORK MAP */}
+        {/* ======================================================= */}
+
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-3">
+
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50">
+                <Train className="h-4 w-4 text-red-600" />
+              </div>
+
+              <div>
+                <h2 className="text-base font-bold text-slate-900">
+                  Live Network
+                </h2>
+
+                <p className="text-xs text-slate-500">
+                  Active train positions
+                </p>
+              </div>
+
+            </div>
+
+            <div className="hidden items-center gap-2 text-xs font-medium text-slate-400 sm:flex">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              {activeCount} active
+            </div>
+
+          </div>
+
+          <div className="h-[500px] xl:h-[540px]">
             <TrainMap
               positions={activePositions}
               trains={trains}
             />
           </div>
+
         </div>
 
-        {/* Right Operations Panel */}
+
+        {/* ======================================================= */}
+        {/* OPERATIONS SIDEBAR */}
+        {/* ======================================================= */}
+
         <div className="flex flex-col gap-5">
 
           <SimulationControls
@@ -188,7 +245,36 @@ const Dashboard = () => {
           </div>
 
         </div>
+
       </div>
+
+
+      {/* ========================================================= */}
+      {/* DEMO MODE NOTE */}
+      {/* ========================================================= */}
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50/60 px-5 py-4">
+
+        <div className="flex items-start gap-3">
+
+          <Activity className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+
+          <div>
+            <p className="text-sm font-semibold text-slate-800">
+              Simulation Environment
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-600">
+              Train positions and operational events are simulated in the
+              current prototype. The system is designed to process authorized
+              real-time railway telemetry when available.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   );
 };
