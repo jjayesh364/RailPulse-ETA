@@ -3,10 +3,15 @@ import Navbar from './Navbar';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-900 text-slate-200">
+    <div className="min-h-screen w-full bg-slate-50 text-slate-900">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-6 flex flex-col">
-        {children}
+
+      <main className="min-h-screen w-full bg-slate-50 md:ml-64 md:w-[calc(100%-16rem)]">
+        <div className="min-h-screen w-full bg-slate-50">
+          <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </div>
       </main>
     </div>
   );
