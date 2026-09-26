@@ -9,6 +9,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
 });
 
 export const getHealth = () => api.get('/health').then(res => res.data);
@@ -71,3 +72,25 @@ export const recalculateETA = () =>
 
 export const resolveIssue = (trainId: string) =>
   api.post(`/simulation/resolve/${trainId}`).then(res => res.data);
+
+export interface SarvamChatResponse {
+  response: string;
+  language: string;
+  train_number?: string | null;
+  source: string;
+  audio_base64?: string | null;
+}
+
+export const askSarvamAssistant = (message: string, language: string = "auto"): Promise<SarvamChatResponse> =>
+  api.post<SarvamChatResponse>('/sarvam/chat', { message, language }).then(res => res.data);
+
+export const getSarvamTTS = (text: string, language_code: string = "hi-IN"): Promise<{ audio_base64: string; format: string }> =>
+  api.post('/sarvam/tts', { text, language_code }).then(res => res.data);
+
+export const sendSarvamAudioSTT = (audioBlob: Blob): Promise<SarvamChatResponse> => {
+  const formData = new FormData();
+  formData.append('file', audioBlob, 'speech.wav');
+  return api.post<SarvamChatResponse>('/sarvam/stt', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(res => res.data);
+};

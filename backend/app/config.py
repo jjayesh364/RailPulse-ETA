@@ -33,5 +33,17 @@ class Settings:
     HOST: str = os.getenv("BACKEND_HOST", "0.0.0.0")
     PORT: int = int(os.getenv("BACKEND_PORT", "8000"))
 
+    # JWT Authentication
+    JWT_SECRET_KEY: str = os.getenv(
+        "JWT_SECRET_KEY",
+        # Auto-generate a dev-only secret if not set; MUST be set in production
+        __import__("secrets").token_urlsafe(64)
+    )
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
+    # Sarvam AI
+    SARVAM_API_KEY: str | None = os.getenv("SARVAM_API_KEY")
+
 
 settings = Settings()

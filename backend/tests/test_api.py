@@ -5,6 +5,7 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.database.db import init_db
 from app.database.seed import seed_db
+from app.database.seed_users import seed_demo_users
 from app.services.eta_service import eta_service
 from ml.predict import ETAPredictor
 
@@ -13,8 +14,26 @@ from ml.predict import ETAPredictor
 async def client():
     await init_db()
     await seed_db()
+    await seed_demo_users()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+
+@pytest.fixture
+async def staff_client():
+    """Client authenticated as RAILWAY_STAFF for protected endpoint tests."""
+    await init_db()
+    await seed_db()
+    await seed_demo_users()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        # Login as staff to get auth cookie
+        login_resp = await ac.post("/api/auth/login", json={
+            "phone": "9876543211",
+            "password": "demo123",
+        })
+        assert login_resp.status_code == 200
         yield ac
 
 
@@ -111,11 +130,11 @@ async def test_ml_direct_inference():
 
 
 @pytest.mark.asyncio
-async def test_dynamic_eta_before_and_after_disruption(client):
+async def test_dynamic_eta_before_and_after_disruption(staff_client):
     """Verify that injecting an operational event actively changes the ETA and generates alerts."""
     # 1. Capture ETA before disruption
     train_id = "12951"
-    detail_before = (await client.get(f"/api/trains/{train_id}")).json()
+    detail_before = (await staff_client.get(f"/api/trains/{train_id}")).json()
     etas_before = detail_before.get("etas", [])
     assert len(etas_before) > 0
     eta_pred_before = etas_before[0]["predicted_delay_minutes"]
@@ -129,12 +148,12 @@ async def test_dynamic_eta_before_and_after_disruption(client):
         "duration_minutes": 30,
         "description": "High signal interlocking delay at BRC junction",
     }
-    event_res = await client.post("/api/simulation/events", json=event_payload)
+    event_res = await staff_client.post("/api/simulation/events", json=event_payload)
     assert event_res.status_code == 200
     assert event_res.json()["impact_delay_minutes"] > 0
 
     # 3. Capture ETA after disruption
-    detail_after = (await client.get(f"/api/trains/{train_id}")).json()
+    detail_after = (await staff_client.get(f"/api/trains/{train_id}")).json()
     etas_after = detail_after.get("etas", [])
     assert len(etas_after) > 0
     eta_pred_after = etas_after[0]["predicted_delay_minutes"]
@@ -143,7 +162,7 @@ async def test_dynamic_eta_before_and_after_disruption(client):
     assert eta_pred_after > eta_pred_before
 
     # 5. Verify alert generated
-    alerts = (await client.get("/api/alerts")).json()
+    alerts = (await staff_client.get("/api/alerts")).json()
     assert len(alerts) > 0
     assert any(a["train_id"] == train_id for a in alerts)
 
@@ -320,12 +339,12 @@ async def test_analytics_model_performance_temporal_consistency(client):
 
 
 @pytest.mark.asyncio
-async def test_register_real_train_dynamic_simulation(client):
+async def test_register_real_train_dynamic_simulation(staff_client):
     """Test: Dynamically register real train 20491 into the simulation engine."""
     from app.simulation.engine import simulation_engine
 
     # 1. Start simulation for real train 20491
-    start_resp = await client.post("/api/simulation/trains/20491/start")
+    start_resp = await staff_client.post("/api/simulation/trains/20491/start")
     assert start_resp.status_code == 200
     start_data = start_resp.json()
     assert start_data["success"] is True
@@ -333,19 +352,19 @@ async def test_register_real_train_dynamic_simulation(client):
     assert "Simulated Telemetry" in start_data["telemetry_source"]
 
     # 2. Verify status endpoint includes 20491
-    status_resp = await client.get("/api/simulation/status")
+    status_resp = await staff_client.get("/api/simulation/status")
     assert status_resp.status_code == 200
     status_data = status_resp.json()
     assert "20491" in status_data["simulated_real_trains"]
     assert status_data["train_count"] >= 11
 
     # 3. Verify get /api/simulation/trains endpoint
-    sim_trains_resp = await client.get("/api/simulation/trains")
+    sim_trains_resp = await staff_client.get("/api/simulation/trains")
     assert sim_trains_resp.status_code == 200
     assert "20491" in sim_trains_resp.json()["simulated_real_trains"]
 
     # 4. Advance simulation tick and verify real train state updates
-    init_pos_resp = await client.get("/api/trains/20491/position")
+    init_pos_resp = await staff_client.get("/api/trains/20491/position")
     assert init_pos_resp.status_code == 200
     init_pos = init_pos_resp.json()
     assert init_pos["is_simulated"] is True
@@ -353,7 +372,7 @@ async def test_register_real_train_dynamic_simulation(client):
     # Advance tick
     await simulation_engine.tick()
 
-    tick_pos_resp = await client.get("/api/trains/20491/position")
+    tick_pos_resp = await staff_client.get("/api/trains/20491/position")
     assert tick_pos_resp.status_code == 200
     tick_pos = tick_pos_resp.json()
     assert tick_pos["telemetry_source"] == "Simulated Telemetry (No Authorized Live Feed)"
@@ -367,29 +386,29 @@ async def test_register_real_train_dynamic_simulation(client):
         "duration_minutes": 25,
         "description": "Signal interlock issue at Phalodi Jn",
     }
-    event_resp = await client.post("/api/simulation/events", json=event_payload)
+    event_resp = await staff_client.post("/api/simulation/events", json=event_payload)
     assert event_resp.status_code == 200
     event_data = event_resp.json()
     assert event_data["impact_delay_minutes"] > 0
 
     # Verify train position reflects delay
-    after_event_pos = (await client.get("/api/trains/20491/position")).json()
+    after_event_pos = (await staff_client.get("/api/trains/20491/position")).json()
     assert after_event_pos["delay_minutes"] >= event_data["impact_delay_minutes"]
 
     # Verify ETA predictions reflect disruption
-    etas_resp = await client.get("/api/trains/20491/eta")
+    etas_resp = await staff_client.get("/api/trains/20491/eta")
     assert etas_resp.status_code == 200
     etas = etas_resp.json()
     assert len(etas) > 0
     assert etas[0]["predicted_delay_minutes"] > 0
 
     # 6. Unregister 20491
-    stop_resp = await client.post("/api/simulation/trains/20491/stop")
+    stop_resp = await staff_client.post("/api/simulation/trains/20491/stop")
     assert stop_resp.status_code == 200
     assert stop_resp.json()["success"] is True
 
     # Verify removed from simulated list
-    status_after = (await client.get("/api/simulation/status")).json()
+    status_after = (await staff_client.get("/api/simulation/status")).json()
     assert "20491" not in status_after["simulated_real_trains"]
 
 

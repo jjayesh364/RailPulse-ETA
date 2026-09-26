@@ -1,22 +1,24 @@
 """Simulation control API endpoints."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.models.schemas import EventCreateRequest
 from app.simulation.engine import simulation_engine
+from app.api.auth_deps import require_staff
+from app.models.user_model import User
 
 router = APIRouter()
 
 
 @router.post("/simulation/start")
-async def start_simulation():
-    """Start the simulation engine."""
+async def start_simulation(current_user: User = Depends(require_staff)):
+    """Start the simulation engine. Requires RAILWAY_STAFF role."""
     result = await simulation_engine.start()
     return result
 
 
 @router.post("/simulation/pause")
-async def pause_simulation():
-    """Pause/stop the simulation engine."""
+async def pause_simulation(current_user: User = Depends(require_staff)):
+    """Pause/stop the simulation engine. Requires RAILWAY_STAFF role."""
     result = await simulation_engine.stop()
     return result
 
@@ -48,7 +50,7 @@ async def get_simulated_real_trains():
 
 
 @router.post("/simulation/trains/{train_number}/start")
-async def start_real_train_simulation(train_number: str):
+async def start_real_train_simulation(train_number: str, current_user: User = Depends(require_staff)):
     """
     Dynamically register a real train from the real_trains database into the SimulationEngine.
     Binds its authentic timetable and begins active continuous position/ETA updates.
@@ -61,7 +63,7 @@ async def start_real_train_simulation(train_number: str):
 
 
 @router.post("/simulation/trains/{train_number}/stop")
-async def stop_real_train_simulation(train_number: str):
+async def stop_real_train_simulation(train_number: str, current_user: User = Depends(require_staff)):
     """
     Unregister a real train from the active simulation engine.
     Restores its master schedule state while removing live simulation telemetry.
@@ -71,15 +73,15 @@ async def stop_real_train_simulation(train_number: str):
 
 
 @router.post("/simulation/events")
-async def inject_event(event: EventCreateRequest):
-    """Inject an operational event into the simulation."""
+async def inject_event(event: EventCreateRequest, current_user: User = Depends(require_staff)):
+    """Inject an operational event into the simulation. Requires RAILWAY_STAFF role."""
     result = await simulation_engine.inject_event(event.model_dump())
     return result
 
 
 @router.post("/simulation/resolve/{train_id}")
-async def resolve_train_issue(train_id: str):
-    """Resolve operational issue for a critical delay train."""
+async def resolve_train_issue(train_id: str, current_user: User = Depends(require_staff)):
+    """Resolve operational issue for a critical delay train. Requires RAILWAY_STAFF role."""
     from fastapi import HTTPException
     result = await simulation_engine.resolve_train_issue(train_id)
     if not result.get("success"):
@@ -88,8 +90,8 @@ async def resolve_train_issue(train_id: str):
 
 
 @router.post("/eta/recalculate")
-async def recalculate_etas():
-    """Force recalculation of all ETAs."""
+async def recalculate_etas(current_user: User = Depends(require_staff)):
+    """Force recalculation of all ETAs. Requires RAILWAY_STAFF role."""
     from app.services.eta_service import eta_service
     await eta_service.recalculate_all_etas()
     return {"status": "recalculated", "message": "All ETAs have been recalculated."}

@@ -15,7 +15,8 @@ from app.database.db import init_db
 from app.database.seed import seed_db
 from app.simulation.engine import simulation_engine
 from app.services.eta_service import eta_service
-from app.api import trains, simulation, network, alerts, analytics, websocket
+from app.models.user_model import User  # noqa: F401 — ensure users table is created
+from app.api import trains, simulation, network, alerts, analytics, websocket, auth, sarvam
 
 
 @asynccontextmanager
@@ -34,6 +35,11 @@ async def lifespan(app: FastAPI):
     # Load seed data
     await seed_db()
     print("[Startup] Seed data loaded.")
+
+    # Seed demo users (idempotent)
+    from app.database.seed_users import seed_demo_users
+    await seed_demo_users()
+    print("[Startup] Demo users ready.")
 
     # Set ML predictor on simulation engine
     if eta_service.predictor:
@@ -62,10 +68,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS - allow all for demo
+# CORS - explicit origins for cookie-based auth (credentials require non-wildcard)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://localhost:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,6 +89,8 @@ app.include_router(simulation.router, prefix="/api", tags=["Simulation"])
 app.include_router(network.router, prefix="/api/network", tags=["Network"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["Alerts"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(sarvam.router, prefix="/api/sarvam", tags=["Sarvam AI"])
 app.include_router(websocket.router, tags=["WebSocket"])
 
 
