@@ -16,7 +16,7 @@ async def base_client():
     await seed_db()
     await seed_demo_users()
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="https://test") as ac:
         yield ac
 
 
@@ -34,7 +34,7 @@ async def passenger_client(base_client):
 async def staff_client(base_client):
     # Create fresh client for staff to avoid shared cookies
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="https://test") as ac:
         login_resp = await ac.post("/api/auth/login", json={
             "phone": "9876543211",
             "password": "demo123"

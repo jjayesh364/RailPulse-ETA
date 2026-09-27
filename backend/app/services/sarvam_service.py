@@ -108,7 +108,7 @@ class SarvamService:
 
         # Supported language codes: 'en-IN', 'hi-IN', 'bn-IN', 'ta-IN', 'te-IN', etc.
         valid_lang = language_code if language_code in [
-            "en-IN", "hi-IN", "bn-IN", "ta-IN", "te-IN", "gu-IN", "kn-IN", "ml-IN", "mr-IN", "pa-IN"
+            "en-IN", "hi-IN", "bn-IN", "ta-IN", "te-IN", "gu-IN", "kn-IN", "ml-IN", "mr-IN", "pa-IN", "od-IN"
         ] else "hi-IN"
 
         try:

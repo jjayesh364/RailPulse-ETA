@@ -5,7 +5,7 @@ All data is grounded strictly on RailPulse backend facts and ML ETAs.
 Operational actions (simulation, event injection) are strictly forbidden here.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from typing import Optional, Dict, Any
 from app.api.auth_deps import get_current_user
 from app.models.user_model import User
@@ -135,6 +135,8 @@ async def text_to_speech(
 @router.post("/stt", response_model=SarvamChatResponse)
 async def speech_to_text_chat(
     file: UploadFile = File(...),
+    language_code: Optional[str] = Form("unknown"),
+    tts_language_code: Optional[str] = Form(None),
     current_user: User = Depends(get_current_user),
 ):
     """Voice inquiry endpoint: Transcribes speech and answers railway queries.
@@ -159,7 +161,7 @@ async def speech_to_text_chat(
     # Format as (filename, bytes) tuple expected by SDK
     transcription = sarvam_service.transcribe_audio(
         (file.filename or "audio.wav", audio_bytes),
-        language_code="unknown",
+        language_code=language_code or "unknown",
     )
 
     if not transcription:
@@ -178,8 +180,11 @@ async def speech_to_text_chat(
         language="auto",
     )
 
-    # Optional speech synthesis of response
-    audio_reply = sarvam_service.synthesize_speech(reply_text)
+    # Optional speech synthesis of response in selected voice language
+    audio_reply = sarvam_service.synthesize_speech(
+        reply_text,
+        language_code=tts_language_code or "hi-IN",
+    )
 
     return SarvamChatResponse(
         response=reply_text,

@@ -16,7 +16,7 @@ async def client():
     await seed_db()
     await seed_demo_users()
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="https://test") as ac:
         yield ac
 
 
@@ -27,7 +27,7 @@ async def staff_client():
     await seed_db()
     await seed_demo_users()
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="https://test") as ac:
         # Login as staff to get auth cookie
         login_resp = await ac.post("/api/auth/login", json={
             "phone": "9876543211",

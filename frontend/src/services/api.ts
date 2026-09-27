@@ -87,9 +87,19 @@ export const askSarvamAssistant = (message: string, language: string = "auto"): 
 export const getSarvamTTS = (text: string, language_code: string = "hi-IN"): Promise<{ audio_base64: string; format: string }> =>
   api.post('/sarvam/tts', { text, language_code }).then(res => res.data);
 
-export const sendSarvamAudioSTT = (audioBlob: Blob): Promise<SarvamChatResponse> => {
+export const sendSarvamAudioSTT = (
+  audioBlob: Blob,
+  language_code: string = "unknown",
+  tts_language_code?: string
+): Promise<SarvamChatResponse> => {
   const formData = new FormData();
   formData.append('file', audioBlob, 'speech.wav');
+  if (language_code) {
+    formData.append('language_code', language_code);
+  }
+  if (tts_language_code) {
+    formData.append('tts_language_code', tts_language_code);
+  }
   return api.post<SarvamChatResponse>('/sarvam/stt', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }).then(res => res.data);
