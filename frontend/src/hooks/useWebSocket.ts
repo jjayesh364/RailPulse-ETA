@@ -5,14 +5,21 @@ export function useWebSocket() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+    // Track real WebSocket open/close events for accurate status display
+    const handleOpen = () => setConnected(true);
+    const handleClose = () => setConnected(false);
+    const handleError = () => setConnected(false);
+
+    wsService.onOpen(handleOpen);
+    wsService.onClose(handleClose);
+    wsService.onError(handleError);
+
     wsService.connect();
-    // A simple hack to check connection status since our WebSocketService doesn't expose it cleanly yet
-    // In a real app we'd add an onConnect/onDisconnect emitter
-    setConnected(true);
 
     return () => {
-      // We don't disconnect globally because other components might be using it,
-      // but we could if this was the root app hook.
+      wsService.offOpen(handleOpen);
+      wsService.offClose(handleClose);
+      wsService.offError(handleError);
     };
   }, []);
 

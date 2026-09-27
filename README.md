@@ -125,8 +125,8 @@ Git is required to clone the repository. Install Git for Windows if it is not al
 Then clone the project:
 
 ```bash
-git clone https://github.com/jjayesh364/RailPulse-ETA.git
-cd RailPulse-ETA
+git clone https://github.com/jjayesh364/RailPulse-ETA-Sarvam.git
+cd RailPulse-ETA-Sarvam
 ```
 
 ### Step 2 — Start RailPulse
@@ -259,15 +259,15 @@ python backend/scripts/import_real_train_data.py
 ## 🎯 8. SIH Jury Demo Walkthrough (3-5 Minutes)
 
 1. **Dashboard View (`/`):**  
-   Observe KPI cards (Active Trains, On-Time, Delayed, Avg Delay, Prediction Accuracy) and real-time moving trains on the India railway network map.
+   Observe KPI cards (Active Trains, On-Time, Delayed, Avg Delay, Model MAE) and real-time moving trains on the India railway network map.
 2. **Train Details (`/trains/12951`):**  
    Click on **12951 Mumbai Rajdhani**. View the dynamic station-by-station predicted arrival times vs scheduled timetable.
 3. **Disruption Injection:**  
    Open the **Operational Event Simulator** on the dashboard or train page. Inject *"Signal Congestion (Severity: 0.8)"* near the Agra/Ratlam section.
 4. **Dynamic ETA Reaction:**  
-   Instantly witness the train's delay and upcoming station ETAs increase dynamically (+6 to +9 mins). Notice the auto-generated alert in the header.
+   Observe the train's delay and predicted arrival times update dynamically after the operational event is applied. Notice the auto-generated alert.
 5. **Explainability ("Why did ETA change?"):**  
-   Inspect the **Prediction Factors** card breaking down delay contributions: *Signal Congestion (+5 min), Speed Restriction (+2 min), Historical Pattern (+1 min)*.
+   Inspect the **Prediction Factors** card to understand the operational conditions contributing to the predicted delay.
 6. **Passenger View (`/passenger`):**  
    Switch to the clean passenger interface. Search for train `12951` to see plain-language delay notifications and next-station countdowns.
 7. **Control Room View (`/control-room`):**  
@@ -283,7 +283,7 @@ Run backend tests:
 ```bash
 pytest backend/tests/test_api.py -v
 ```
-✅ 28/28 comprehensive tests passing (100% test coverage for API endpoints, real train master data, DataMeet imports, and ML evaluation invariants).
+✅ 43/43 tests passing (100% test coverage for API endpoints, real train master data, DataMeet imports, and ML evaluation invariants).
 
 ---
 
@@ -291,6 +291,6 @@ pytest backend/tests/test_api.py -v
 
 In a production rollout, `MockRailwayDataSource` in `backend/app/simulation/data_source.py` will be replaced with:
 1. **CRIS & COA APIs:** For live train movement, schedule updates, and rake positioning.
-2. **GPS / AVL Feeds:** Real-time train telemetry directly from RTIS (Real-Time Train Information System) locos.
+2. **GPS / AVL / RTIS Feeds:** Authorized real-time train telemetry can be connected through the telemetry/data-source adapter layer for production deployment.
 3. **Electronic Interlocking (EI) Feeds:** Direct track circuit and signal aspect data for section congestion.
 4. **IMD Weather API:** Automated severe weather and visibility alerts.

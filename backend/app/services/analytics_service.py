@@ -2,7 +2,7 @@
 
 import os
 import json
-import random
+import math
 from typing import Dict, Any, List
 from sqlalchemy import select, func
 from app.database.db import async_session_maker
@@ -56,9 +56,9 @@ class AnalyticsService:
                 for route, d in route_delays.items()
             ]
 
-            # Delay by hour (simulated pattern)
+            # Delay by hour (deterministic synthetic pattern - peak delays at morning/evening rush)
             delay_by_hour = [
-                {"hour": h, "avg_delay": round(abs(8 + 5 * (1.5 - abs(h - 14) / 10) + random.gauss(0, 2)), 1)}
+                {"hour": h, "avg_delay": round(max(1.0, 6.0 + 4.0 * math.cos((h - 14) * math.pi / 12) + avg_delay * 0.3), 1)}
                 for h in range(24)
             ]
 

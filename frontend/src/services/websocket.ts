@@ -1,4 +1,5 @@
 type Callback = (data: any) => void;
+type VoidCallback = () => void;
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const defaultWsUrl = apiUrl.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:').replace(/\/api\/?$/, '/ws/live');
@@ -15,6 +16,19 @@ class WebSocketService {
     congestion_update: [],
   };
 
+  // Connection lifecycle listeners
+  private openListeners: VoidCallback[] = [];
+  private closeListeners: VoidCallback[] = [];
+  private errorListeners: VoidCallback[] = [];
+
+  onOpen(cb: VoidCallback) { this.openListeners.push(cb); }
+  onClose(cb: VoidCallback) { this.closeListeners.push(cb); }
+  onError(cb: VoidCallback) { this.errorListeners.push(cb); }
+
+  offOpen(cb: VoidCallback) { this.openListeners = this.openListeners.filter(f => f !== cb); }
+  offClose(cb: VoidCallback) { this.closeListeners = this.closeListeners.filter(f => f !== cb); }
+  offError(cb: VoidCallback) { this.errorListeners = this.errorListeners.filter(f => f !== cb); }
+
   connect() {
     if (this.ws && (this.ws.readyState === WebSocket.CONNECTING || this.ws.readyState === WebSocket.OPEN)) {
       return;
@@ -25,6 +39,7 @@ class WebSocketService {
     this.ws.onopen = () => {
       console.log('WebSocket connected');
       this.reconnectAttempts = 0;
+      this.openListeners.forEach(cb => cb());
     };
 
     this.ws.onmessage = (event) => {
@@ -41,11 +56,13 @@ class WebSocketService {
 
     this.ws.onclose = () => {
       console.log('WebSocket disconnected');
+      this.closeListeners.forEach(cb => cb());
       this.reconnect();
     };
 
     this.ws.onerror = (error) => {
       console.error('WebSocket error:', error);
+      this.errorListeners.forEach(cb => cb());
     };
   }
 
