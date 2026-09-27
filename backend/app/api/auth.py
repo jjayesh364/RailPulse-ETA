@@ -74,6 +74,7 @@ async def register(
     return AuthResponse(
         message="Registration successful",
         user=_user_response(user),
+        access_token=token,
     )
 
 
@@ -103,6 +104,7 @@ async def login(
     return AuthResponse(
         message="Login successful",
         user=_user_response(user),
+        access_token=token,
     )
 
 

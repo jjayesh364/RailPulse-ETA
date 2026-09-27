@@ -9,12 +9,25 @@ from app.services.auth_service import auth_service
 from app.models.user_model import User
 
 
+def _extract_token(request: Request) -> Optional[str]:
+    """Extract token first from access_token cookie, then fallback to Authorization Bearer header."""
+    token = request.cookies.get("access_token")
+    if token:
+        return token
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        bearer_token = auth_header[7:].strip()
+        if bearer_token:
+            return bearer_token
+    return None
+
+
 async def get_current_user(
     request: Request,
     session: AsyncSession = Depends(get_db),
 ) -> User:
-    """Extract and validate the current user from the auth cookie."""
-    token = request.cookies.get("access_token")
+    """Extract and validate the current user from auth cookie or Authorization Bearer header."""
+    token = _extract_token(request)
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -53,7 +66,7 @@ async def get_optional_user(
     
     Use this for endpoints that work for both authenticated and unauthenticated users.
     """
-    token = request.cookies.get("access_token")
+    token = _extract_token(request)
     if not token:
         return None
     payload = auth_service.decode_token(token)
