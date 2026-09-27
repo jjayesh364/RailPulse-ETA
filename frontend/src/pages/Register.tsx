@@ -42,7 +42,7 @@ const Register = () => {
     setLoading(false);
 
     if (result.success) {
-      navigate('/');
+      navigate('/passenger');
     } else {
       setError(result.error || 'Registration failed.');
     }

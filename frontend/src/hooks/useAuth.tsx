@@ -12,7 +12,7 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  login: (phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (phone: string, password: string) => Promise<{ success: boolean; role?: string; error?: string }>;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await authApi.post('/auth/login', { phone, password });
       setUser(res.data.user);
-      return { success: true };
+      return { success: true, role: res.data.user.role as string };
     } catch (err: any) {
       const message = err?.response?.data?.detail || 'Login failed. Please try again.';
       return { success: false, error: message };

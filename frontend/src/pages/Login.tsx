@@ -25,7 +25,7 @@ const Login = () => {
     setLoading(false);
 
     if (result.success) {
-      navigate('/');
+      navigate(result.role === 'RAILWAY_STAFF' ? '/' : '/passenger');
     } else {
       setError(result.error || 'Invalid credentials.');
     }
