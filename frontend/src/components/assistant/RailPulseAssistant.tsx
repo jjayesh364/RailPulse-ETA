@@ -8,6 +8,7 @@ interface Message {
   text: string;
   trainNumber?: string | null;
   audioBase64?: string | null;
+  localizedText?: string | null;
   timestamp: string;
 }
 
@@ -120,12 +121,15 @@ export const RailPulseAssistant: React.FC = () => {
       const data = await askSarvamAssistant(query);
       const assistantId = `a-${Date.now()}`;
       let audioB64: string | null = data.audio_base64 || null;
+      let locText: string | null = data.localized_text || null;
 
       // Auto TTS: Generate speech for assistant response using selected Voice Language
+      // (Backend /sarvam/tts handles translating to voiceLanguage before synthesizing)
       if (!audioB64 && data.response) {
         try {
           const ttsRes = await getSarvamTTS(data.response, voiceLanguage);
           audioB64 = ttsRes.audio_base64 || null;
+          locText = ttsRes.localized_text || null;
         } catch (ttsErr) {
           console.warn('Auto TTS generation error:', ttsErr);
         }
@@ -137,6 +141,7 @@ export const RailPulseAssistant: React.FC = () => {
         text: data.response,
         trainNumber: data.train_number,
         audioBase64: audioB64,
+        localizedText: locText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, assistantMsg]);
@@ -176,6 +181,7 @@ export const RailPulseAssistant: React.FC = () => {
         const ttsRes = await getSarvamTTS(msg.text, voiceLanguage);
         audioB64 = ttsRes.audio_base64;
         msg.audioBase64 = audioB64;
+        msg.localizedText = ttsRes.localized_text || null;
         setLoading(false);
       }
 
@@ -220,12 +226,14 @@ export const RailPulseAssistant: React.FC = () => {
             const result = await sendSarvamAudioSTT(audioBlob, inputLanguage, voiceLanguage);
             const assistantId = `a-${Date.now()}`;
             let audioB64: string | null = result.audio_base64 || null;
+            let locText: string | null = result.localized_text || null;
 
             // If backend STT did not synthesize audio, generate it via TTS
             if (!audioB64 && result.response) {
               try {
                 const ttsRes = await getSarvamTTS(result.response, voiceLanguage);
                 audioB64 = ttsRes.audio_base64 || null;
+                locText = ttsRes.localized_text || null;
               } catch (ttsErr) {
                 console.warn('Voice Auto TTS generation error:', ttsErr);
               }
@@ -237,6 +245,7 @@ export const RailPulseAssistant: React.FC = () => {
               text: result.response,
               trainNumber: result.train_number,
               audioBase64: audioB64,
+              localizedText: locText,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
             setMessages(prev => [...prev, assistantMsg]);
@@ -361,7 +370,13 @@ export const RailPulseAssistant: React.FC = () => {
                     : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
                 }`}
               >
-                {msg.text}
+                <div>{msg.text}</div>
+                {msg.localizedText && msg.localizedText !== msg.text && (
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 text-slate-600 text-xs flex items-start gap-1.5 bg-slate-50 p-2 rounded-lg">
+                    <Volume2 className="w-3.5 h-3.5 mt-0.5 text-red-600 shrink-0" />
+                    <span className="font-normal">{msg.localizedText}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2 mt-1 px-1">

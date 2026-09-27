@@ -79,13 +79,24 @@ export interface SarvamChatResponse {
   train_number?: string | null;
   source: string;
   audio_base64?: string | null;
+  localized_text?: string | null;
 }
 
 export const askSarvamAssistant = (message: string, language: string = "auto"): Promise<SarvamChatResponse> =>
   api.post<SarvamChatResponse>('/sarvam/chat', { message, language }).then(res => res.data);
 
-export const getSarvamTTS = (text: string, language_code: string = "hi-IN"): Promise<{ audio_base64: string; format: string }> =>
+export const getSarvamTTS = (
+  text: string,
+  language_code: string = "hi-IN"
+): Promise<{ audio_base64: string; format: string; localized_text?: string | null }> =>
   api.post('/sarvam/tts', { text, language_code }).then(res => res.data);
+
+export const translateSarvamText = (
+  text: string,
+  target_language_code: string,
+  source_language_code: string = "auto"
+): Promise<{ translated_text: string; target_language_code: string }> =>
+  api.post('/sarvam/translate', { text, target_language_code, source_language_code }).then(res => res.data);
 
 export const sendSarvamAudioSTT = (
   audioBlob: Blob,

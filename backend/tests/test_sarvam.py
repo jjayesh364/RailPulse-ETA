@@ -160,3 +160,79 @@ async def test_sarvam_tts_endpoint(passenger_client):
         data = resp.json()
         assert data["audio_base64"] == "dummy_base64_audio_data"
         assert data["format"] == "mp3"
+
+
+def test_sarvam_service_translate_text_logic():
+    """Verify SarvamService.translate_text logic."""
+    svc = SarvamService(api_key="test_dummy_key")
+    # English to English should return original without calling API
+    assert svc.translate_text("Train 12951 is delayed 10 minutes", "en-IN") == "Train 12951 is delayed 10 minutes"
+
+    # Mock client text.translate for regional languages
+    mock_res = MagicMock()
+    mock_res.translated_text = "12951 ट्रेन 10 मिनट की देरी से है"
+    with patch.object(svc.client.text, "translate", return_value=mock_res) as mock_trans:
+        translated = svc.translate_text("Train 12951 is delayed 10 minutes", "hi-IN")
+        assert translated == "12951 ट्रेन 10 मिनट की देरी से है"
+        mock_trans.assert_called_once()
+        kwargs = mock_trans.call_args.kwargs
+        assert kwargs["numerals_format"] == "international"
+        assert kwargs["target_language_code"] == "hi-IN"
+
+
+@pytest.mark.asyncio
+async def test_sarvam_tts_localizes_before_synthesizing(passenger_client):
+    """When regional language selected, TTS localizes text before calling Bulbul."""
+    mock_trans_res = MagicMock()
+    mock_trans_res.translated_text = "12951 मुंबई राजधानी समय पर है"
+
+    with patch("app.services.sarvam_service.sarvam_service.client") as mock_client, \
+         patch("app.services.sarvam_service.sarvam_service.synthesize_speech", return_value="base64_audio_hindi") as mock_synth:
+        mock_client.text.translate.return_value = mock_trans_res
+
+        resp = await passenger_client.post("/api/sarvam/tts", json={
+            "text": "Train 12951 Mumbai Rajdhani is on time",
+            "language_code": "hi-IN"
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["audio_base64"] == "base64_audio_hindi"
+        assert data["localized_text"] == "12951 मुंबई राजधानी समय पर है"
+        # Verify synthesize_speech was called with the localized text
+        mock_synth.assert_called_once_with(text="12951 मुंबई राजधानी समय पर है", language_code="hi-IN")
+
+
+@pytest.mark.asyncio
+async def test_sarvam_tts_english_does_not_translate(passenger_client):
+    """When en-IN selected, TTS does not translate and synthesizes original English."""
+    with patch("app.services.sarvam_service.sarvam_service.client") as mock_client, \
+         patch("app.services.sarvam_service.sarvam_service.synthesize_speech", return_value="base64_audio_en") as mock_synth:
+        resp = await passenger_client.post("/api/sarvam/tts", json={
+            "text": "Train 12951 Mumbai Rajdhani is on time",
+            "language_code": "en-IN"
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["audio_base64"] == "base64_audio_en"
+        # Client translation API must not be called for English
+        assert not mock_client.text.translate.called
+        mock_synth.assert_called_once_with(text="Train 12951 Mumbai Rajdhani is on time", language_code="en-IN")
+
+
+@pytest.mark.asyncio
+async def test_sarvam_translate_endpoint(passenger_client):
+    """Translate endpoint accepts query and returns translated text."""
+    mock_res = MagicMock()
+    mock_res.translated_text = "12951 ট্রেনটি সময়মতো চলছে"
+
+    with patch("app.services.sarvam_service.sarvam_service.client") as mock_client:
+        mock_client.text.translate.return_value = mock_res
+        resp = await passenger_client.post("/api/sarvam/translate", json={
+            "text": "Train 12951 is running on time",
+            "target_language_code": "bn-IN"
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["translated_text"] == "12951 ট্রেনটি সময়মতো চলছে"
+        assert data["target_language_code"] == "bn-IN"
+

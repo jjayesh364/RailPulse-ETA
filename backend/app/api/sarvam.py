@@ -14,6 +14,8 @@ from app.models.sarvam_schemas import (
     SarvamChatResponse,
     SarvamTTSRequest,
     SarvamTTSResponse,
+    SarvamTranslateRequest,
+    SarvamTranslateResponse,
 )
 from app.services.sarvam_service import sarvam_service
 from app.services.train_service import train_service
@@ -107,6 +109,7 @@ async def text_to_speech(
     """Generate audio speech (TTS) using Sarvam Bulbul model.
 
     Optional feature for accessibility; returns base64 encoded audio.
+    Localizes/translates English factual text into selected regional language before TTS.
     """
     clean_text = request.text.strip()
     if not clean_text:
@@ -115,9 +118,22 @@ async def text_to_speech(
             detail="Text cannot be empty",
         )
 
+    target_lang = request.language_code or "hi-IN"
+
+    # Regional language selection: translate/localize into target language before TTS
+    speech_text = clean_text
+    if target_lang != "en-IN":
+        translated = sarvam_service.translate_text(
+            text=clean_text,
+            target_language_code=target_lang,
+            source_language_code="auto",
+        )
+        if translated:
+            speech_text = translated
+
     audio_b64 = sarvam_service.synthesize_speech(
-        text=clean_text,
-        language_code=request.language_code or "hi-IN",
+        text=speech_text,
+        language_code=target_lang,
     )
 
     if not audio_b64:
@@ -129,6 +145,34 @@ async def text_to_speech(
     return SarvamTTSResponse(
         audio_base64=audio_b64,
         format="mp3",
+        localized_text=speech_text if speech_text != clean_text else None,
+    )
+
+
+@router.post("/translate", response_model=SarvamTranslateResponse)
+async def translate_text(
+    request: SarvamTranslateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Translate text into selected Indian language using Sarvam Translate."""
+    clean_text = request.text.strip()
+    if not clean_text:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Text cannot be empty",
+        )
+
+    translated = sarvam_service.translate_text(
+        text=clean_text,
+        target_language_code=request.target_language_code,
+        source_language_code=request.source_language_code or "auto",
+    )
+    if not translated:
+        translated = clean_text
+
+    return SarvamTranslateResponse(
+        translated_text=translated,
+        target_language_code=request.target_language_code,
     )
 
 
@@ -181,9 +225,20 @@ async def speech_to_text_chat(
     )
 
     # Optional speech synthesis of response in selected voice language
+    target_tts_lang = tts_language_code or "hi-IN"
+    speech_reply_text = reply_text
+    if target_tts_lang != "en-IN":
+        translated = sarvam_service.translate_text(
+            text=reply_text,
+            target_language_code=target_tts_lang,
+            source_language_code="auto",
+        )
+        if translated:
+            speech_reply_text = translated
+
     audio_reply = sarvam_service.synthesize_speech(
-        reply_text,
-        language_code=tts_language_code or "hi-IN",
+        speech_reply_text,
+        language_code=target_tts_lang,
     )
 
     return SarvamChatResponse(
@@ -192,4 +247,5 @@ async def speech_to_text_chat(
         train_number=train_number,
         source="railpulse",
         audio_base64=audio_reply,
+        localized_text=speech_reply_text if speech_reply_text != reply_text else None,
     )
