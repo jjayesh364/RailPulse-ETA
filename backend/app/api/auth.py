@@ -36,8 +36,8 @@ def _set_auth_cookie(response: Response, token: str) -> None:
         key="access_token",
         value=token,
         httponly=True,
-        samesite="lax",
-        secure=False,  # Set to True in production with HTTPS
+        samesite="none",
+        secure=True,  # Required for cross-origin HTTPS frontend/API requests
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/",
     )
@@ -113,7 +113,8 @@ async def logout(response: Response):
         key="access_token",
         path="/",
         httponly=True,
-        samesite="lax",
+        samesite="none",
+        secure=True,
     )
     return MessageResponse(message="Logged out successfully")
 
