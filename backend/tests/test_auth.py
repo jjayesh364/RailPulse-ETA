@@ -12,36 +12,66 @@ async def unauth_client():
     async with AsyncClient(transport=transport, base_url="https://test") as ac:
         yield ac
 
+async def _cleanup_user_by_phone(phone: str):
+    """Clean up newly created test user by phone from SQLite and MongoDB."""
+    from sqlalchemy import delete
+    from app.database.db import async_session_maker
+    from app.models.user_model import User
+    try:
+        async with async_session_maker() as session:
+            await session.execute(delete(User).where(User.phone == phone))
+            await session.commit()
+    except Exception:
+        pass
+
+    try:
+        from app.database.mongodb import get_mongo_db, COLL_USERS, COLL_COUNTERS
+        db = get_mongo_db()
+        if db is not None:
+            await db[COLL_USERS].delete_many({"phone": phone})
+            count = await db[COLL_USERS].count_documents({})
+            if count <= 42:
+                await db[COLL_COUNTERS].update_one({"_id": "user_id"}, {"$set": {"seq": 42}})
+    except Exception:
+        pass
+
+
 @pytest.mark.asyncio
 async def test_register_user(unauth_client):
     import time
     phone = f"111222{str(int(time.time()))[-4:]}"
-    response = await unauth_client.post("/api/auth/register", json={
-        "name": "Test User",
-        "phone": phone,
-        "password": "password123",
-        "confirm_password": "password123",
-    })
-    assert response.status_code == 201
-    data = response.json()
-    assert data["message"] == "Registration successful"
-    assert data["user"]["role"] == "PASSENGER"
-    assert "access_token" in response.cookies or True
+    try:
+        response = await unauth_client.post("/api/auth/register", json={
+            "name": "Test User",
+            "phone": phone,
+            "password": "password123",
+            "confirm_password": "password123",
+        })
+        assert response.status_code == 201
+        data = response.json()
+        assert data["message"] == "Registration successful"
+        assert data["user"]["role"] == "PASSENGER"
+        assert "access_token" in response.cookies or True
+    finally:
+        await _cleanup_user_by_phone(phone)
 
 @pytest.mark.asyncio
 async def test_register_user_ignores_role_input(unauth_client):
     import time
     phone = f"111333{str(int(time.time()))[-4:]}"
-    response = await unauth_client.post("/api/auth/register", json={
-        "name": "Hacker User",
-        "phone": phone,
-        "password": "password123",
-        "confirm_password": "password123",
-        "role": "RAILWAY_STAFF"
-    })
-    assert response.status_code == 201
-    data = response.json()
-    assert data["user"]["role"] == "PASSENGER"
+    try:
+        response = await unauth_client.post("/api/auth/register", json={
+            "name": "Hacker User",
+            "phone": phone,
+            "password": "password123",
+            "confirm_password": "password123",
+            "role": "RAILWAY_STAFF"
+        })
+        assert response.status_code == 201
+        data = response.json()
+        assert data["user"]["role"] == "PASSENGER"
+    finally:
+        await _cleanup_user_by_phone(phone)
 
 @pytest.mark.asyncio
 async def test_login_user(unauth_client):

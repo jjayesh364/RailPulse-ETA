@@ -17,6 +17,10 @@ class Settings:
         "sqlite+aiosqlite:///./railpulse.db"
     )
 
+    # MongoDB Atlas (AsyncMongoClient)
+    MONGODB_URL: str | None = os.getenv("MONGODB_URL")
+    MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "railpulse")
+
     # Simulation
     SIMULATION_INTERVAL: int = int(os.getenv("SIMULATION_INTERVAL", "3"))
 

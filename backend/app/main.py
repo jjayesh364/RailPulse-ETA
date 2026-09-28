@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from app.config import settings
 from app.database.db import init_db
+from app.database.mongodb import init_mongo, close_mongo
 from app.database.seed import seed_db
 from app.simulation.engine import simulation_engine
 from app.services.eta_service import eta_service
@@ -31,6 +32,9 @@ async def lifespan(app: FastAPI):
     # Initialize database
     await init_db()
     print("[Startup] Database initialized.")
+
+    # Initialize MongoDB (AsyncMongoClient) if configured
+    await init_mongo()
 
     # Load seed data
     await seed_db()
@@ -58,6 +62,8 @@ async def lifespan(app: FastAPI):
     # Shutdown
     await simulation_engine.stop()
     print("[Shutdown] Simulation engine stopped.")
+    await close_mongo()
+    print("[Shutdown] MongoDB connection closed.")
 
 
 app = FastAPI(

@@ -2,9 +2,7 @@
 
 from typing import Optional
 from fastapi import Depends, HTTPException, status, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.db import get_db
 from app.services.auth_service import auth_service
 from app.models.user_model import User
 
@@ -24,7 +22,6 @@ def _extract_token(request: Request) -> Optional[str]:
 
 async def get_current_user(
     request: Request,
-    session: AsyncSession = Depends(get_db),
 ) -> User:
     """Extract and validate the current user from auth cookie or Authorization Bearer header."""
     token = _extract_token(request)
@@ -48,7 +45,7 @@ async def get_current_user(
             detail="Invalid token payload",
         )
 
-    user = await auth_service.get_user_by_id(session, int(user_id))
+    user = await auth_service.get_user_by_id(user_id=int(user_id))
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -60,7 +57,6 @@ async def get_current_user(
 
 async def get_optional_user(
     request: Request,
-    session: AsyncSession = Depends(get_db),
 ) -> Optional[User]:
     """Get current user if authenticated, otherwise return None.
     
@@ -75,7 +71,7 @@ async def get_optional_user(
     user_id = payload.get("sub")
     if not user_id:
         return None
-    return await auth_service.get_user_by_id(session, int(user_id))
+    return await auth_service.get_user_by_id(user_id=int(user_id))
 
 
 def require_role(*allowed_roles: str):
