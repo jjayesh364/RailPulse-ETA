@@ -5,9 +5,7 @@ import json
 import math
 import logging
 from typing import Dict, Any, List
-from sqlalchemy import select, func
-from app.database.db import async_session_maker
-from app.models.database_models import TrainPosition, Train, Alert, CongestionSection
+from app.models.runtime_models import TrainPosition
 from app.services.eta_service import eta_service
 from app.database.mongodb import get_mongo_db, COLL_ALERTS, COLL_TRAIN_POSITIONS, COLL_TRAINS
 
@@ -20,114 +18,69 @@ class AnalyticsService:
     async def get_full_analytics(self) -> dict:
         """Get comprehensive analytics data."""
         db = get_mongo_db()
-        if db is not None:
-            mongo_positions = await db[COLL_TRAIN_POSITIONS].find({}).to_list(length=100)
-            positions = [
-                TrainPosition(
-                    train_id=p.get("train_id", p.get("_id")),
-                    latitude=float(p.get("latitude", 0.0)),
-                    longitude=float(p.get("longitude", 0.0)),
-                    speed_kmph=float(p.get("speed_kmph", 0.0)),
-                    delay_minutes=float(p.get("delay_minutes", 0.0)),
-                    status=p.get("status", "On Time"),
-                    current_station_code=p.get("current_station_code"),
-                    current_station_name=p.get("current_station_name"),
-                    next_station_code=p.get("next_station_code"),
-                    next_station_name=p.get("next_station_name"),
-                    distance_covered_km=float(p.get("distance_covered_km", 0.0)),
-                    total_distance_km=float(p.get("total_distance_km", 0.0)),
-                    last_updated=p.get("last_updated"),
-                    current_stop_index=p.get("current_stop_index", 0),
-                    at_station=p.get("at_station", False),
-                    dwell_remaining_seconds=p.get("dwell_remaining_seconds", 0),
-                )
-                for p in mongo_positions
-            ]
-            total = len(positions)
-            on_time = sum(1 for p in positions if p.status == "On Time")
-            slight = sum(1 for p in positions if p.status == "Slight Delay")
-            delayed = sum(1 for p in positions if p.status == "Delayed")
-            critical = sum(1 for p in positions if p.status == "Critical Delay")
-            avg_delay = sum(p.delay_minutes for p in positions) / max(1, total)
+        if db is None:
+            raise RuntimeError("MongoDB unavailable")
 
-            active_alerts = await db[COLL_ALERTS].count_documents({"acknowledged": False})
-            accuracy = max(70, 95 - avg_delay * 0.5)
+        mongo_positions = await db[COLL_TRAIN_POSITIONS].find({}).to_list(length=100)
+        positions = [
+            TrainPosition(
+                train_id=p.get("train_id", p.get("_id")),
+                latitude=float(p.get("latitude", 0.0)),
+                longitude=float(p.get("longitude", 0.0)),
+                speed_kmph=float(p.get("speed_kmph", 0.0)),
+                delay_minutes=float(p.get("delay_minutes", 0.0)),
+                status=p.get("status", "On Time"),
+                current_station_code=p.get("current_station_code"),
+                current_station_name=p.get("current_station_name"),
+                next_station_code=p.get("next_station_code"),
+                next_station_name=p.get("next_station_name"),
+                distance_covered_km=float(p.get("distance_covered_km", 0.0)),
+                total_distance_km=float(p.get("total_distance_km", 0.0)),
+                last_updated=p.get("last_updated"),
+                current_stop_index=p.get("current_stop_index", 0),
+                at_station=p.get("at_station", False),
+                dwell_remaining_seconds=p.get("dwell_remaining_seconds", 0),
+            )
+            for p in mongo_positions
+        ]
+        total = len(positions)
+        on_time = sum(1 for p in positions if p.status == "On Time")
+        slight = sum(1 for p in positions if p.status == "Slight Delay")
+        delayed = sum(1 for p in positions if p.status == "Delayed")
+        critical = sum(1 for p in positions if p.status == "Critical Delay")
+        avg_delay = sum(p.delay_minutes for p in positions) / max(1, total)
 
-            trains = []
-            try:
-                train_docs = await db[COLL_TRAINS].find({}, {"train_id": 1, "source_code": 1, "destination_code": 1}).to_list(length=100)
-                trains = [
-                    type("TrainRecord", (), {
-                        "train_id": t["train_id"],
-                        "source_code": t.get("source_code", ""),
-                        "destination_code": t.get("destination_code", ""),
-                    })()
-                    for t in train_docs
-                ]
-            except Exception as e:
-                logger.warning(f"[AnalyticsService] MongoDB trains query failed ({e}), falling back to SQLite.")
-                async with async_session_maker() as session:
-                    trains_result = await session.execute(select(Train))
-                    trains = trains_result.scalars().all()
+        active_alerts = await db[COLL_ALERTS].count_documents({"acknowledged": False})
+        accuracy = max(70, 95 - avg_delay * 0.5)
 
-            route_delays = {}
-            for t in trains:
-                route = f"{t.source_code}→{t.destination_code}"
-                pos = next((p for p in positions if p.train_id == t.train_id), None)
-                if pos:
-                    if route not in route_delays:
-                        route_delays[route] = {"delays": [], "count": 0}
-                    route_delays[route]["delays"].append(pos.delay_minutes)
-                    route_delays[route]["count"] += 1
+        train_docs = await db[COLL_TRAINS].find({}, {"train_id": 1, "source_code": 1, "destination_code": 1}).to_list(length=100)
+        trains = [
+            type("TrainRecord", (), {
+                "train_id": t["train_id"],
+                "source_code": t.get("source_code", ""),
+                "destination_code": t.get("destination_code", ""),
+            })()
+            for t in train_docs
+        ]
 
-            delay_by_route = [
-                {
-                    "route": route,
-                    "avg_delay": round(sum(d["delays"]) / len(d["delays"]), 1),
-                    "train_count": d["count"],
-                }
-                for route, d in route_delays.items()
-            ]
-        else:
-            async with async_session_maker() as session:
-                positions_result = await session.execute(select(TrainPosition))
-                positions = positions_result.scalars().all()
+        route_delays = {}
+        for t in trains:
+            route = f"{t.source_code}→{t.destination_code}"
+            pos = next((p for p in positions if p.train_id == t.train_id), None)
+            if pos:
+                if route not in route_delays:
+                    route_delays[route] = {"delays": [], "count": 0}
+                route_delays[route]["delays"].append(pos.delay_minutes)
+                route_delays[route]["count"] += 1
 
-                total = len(positions)
-                on_time = sum(1 for p in positions if p.status == "On Time")
-                slight = sum(1 for p in positions if p.status == "Slight Delay")
-                delayed = sum(1 for p in positions if p.status == "Delayed")
-                critical = sum(1 for p in positions if p.status == "Critical Delay")
-                avg_delay = sum(p.delay_minutes for p in positions) / max(1, total)
-
-                alerts_count = await session.execute(
-                    select(func.count()).select_from(Alert).where(Alert.acknowledged == False)
-                )
-                active_alerts = alerts_count.scalar() or 0
-
-                accuracy = max(70, 95 - avg_delay * 0.5)
-
-                # Delay by route
-                trains_result = await session.execute(select(Train))
-                trains = trains_result.scalars().all()
-                route_delays = {}
-                for t in trains:
-                    route = f"{t.source_code}→{t.destination_code}"
-                    pos = next((p for p in positions if p.train_id == t.train_id), None)
-                    if pos:
-                        if route not in route_delays:
-                            route_delays[route] = {"delays": [], "count": 0}
-                        route_delays[route]["delays"].append(pos.delay_minutes)
-                        route_delays[route]["count"] += 1
-
-                delay_by_route = [
-                    {
-                        "route": route,
-                        "avg_delay": round(sum(d["delays"]) / len(d["delays"]), 1),
-                        "train_count": d["count"],
-                    }
-                    for route, d in route_delays.items()
-                ]
+        delay_by_route = [
+            {
+                "route": route,
+                "avg_delay": round(sum(d["delays"]) / len(d["delays"]), 1),
+                "train_count": d["count"],
+            }
+            for route, d in route_delays.items()
+        ]
 
         # Delay by hour (deterministic synthetic pattern - peak delays at morning/evening rush)
         delay_by_hour = [

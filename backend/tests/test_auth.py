@@ -1,29 +1,17 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.database.db import init_db
-from app.database.seed_users import seed_demo_users
-
 @pytest.fixture
 async def unauth_client():
-    await init_db()
-    await seed_demo_users()
+    from app.database.mongodb import init_mongo, get_mongo_db
+    if get_mongo_db() is None:
+        await init_mongo()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="https://test") as ac:
         yield ac
 
 async def _cleanup_user_by_phone(phone: str):
-    """Clean up newly created test user by phone from SQLite and MongoDB."""
-    from sqlalchemy import delete
-    from app.database.db import async_session_maker
-    from app.models.user_model import User
-    try:
-        async with async_session_maker() as session:
-            await session.execute(delete(User).where(User.phone == phone))
-            await session.commit()
-    except Exception:
-        pass
-
+    """Clean up newly created test user by phone from MongoDB."""
     try:
         from app.database.mongodb import get_mongo_db, COLL_USERS, COLL_COUNTERS
         db = get_mongo_db()

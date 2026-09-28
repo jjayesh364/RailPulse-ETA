@@ -6,18 +6,14 @@ Ensures persistent development databases (SQLite and MongoDB) remain pristine
 
 import os
 import sys
-import sqlite3
 import pytest
-from sqlalchemy import delete
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.database.db import async_session_maker
-from app.models.user_model import User
-from app.models.database_models import Alert, OperationalEvent, TrainPosition, ETAPrediction
 from app.database.mongodb import (
     get_mongo_db,
+    init_mongo,
     COLL_USERS,
     COLL_COUNTERS,
     COLL_ALERTS,
@@ -34,19 +30,7 @@ async def _purge_test_records():
     """Purge test-created records: users > 42, alerts > 157, events > 29,
     and train_positions / eta_predictions not belonging to the 10 demo trains.
     """
-    # 1. SQLite cleanup
-    try:
-        async with async_session_maker() as session:
-            await session.execute(delete(User).where(User.id > 42))
-            await session.execute(delete(Alert).where(Alert.id > 157))
-            await session.execute(delete(OperationalEvent).where(OperationalEvent.id > 29))
-            await session.execute(delete(TrainPosition).where(TrainPosition.train_id.not_in(DEMO_TRAIN_IDS)))
-            await session.execute(delete(ETAPrediction).where(ETAPrediction.train_id.not_in(DEMO_TRAIN_IDS)))
-            await session.commit()
-    except Exception:
-        pass
-
-    # 2. MongoDB cleanup (if connected)
+    # MongoDB cleanup (if connected)
     try:
         db = get_mongo_db()
         if db is not None:
@@ -75,6 +59,8 @@ async def _purge_test_records():
 @pytest.fixture(autouse=True)
 async def isolate_test_database_records():
     """Autouse fixture ensuring no test records persist after any test across the suite."""
+    if get_mongo_db() is None:
+        await init_mongo()
     yield
     await _purge_test_records()
 
@@ -82,29 +68,8 @@ async def isolate_test_database_records():
 def pytest_sessionfinish(session, exitstatus):
     """
     Synchronous pytest hook called after the entire test session completes.
-    Guarantees cleanup of SQLite and MongoDB development databases even if async loops closed.
+    Guarantees cleanup of MongoDB development database even if async loops closed.
     """
-    # SQLite cleanup
-    db_paths = [
-        "railpulse.db",
-        os.path.join(os.path.dirname(__file__), "..", "railpulse.db"),
-        os.path.join(os.path.dirname(__file__), "..", "..", "railpulse.db"),
-    ]
-    for path in db_paths:
-        if os.path.exists(path):
-            try:
-                con = sqlite3.connect(path)
-                con.execute("DELETE FROM users WHERE id > 42")
-                con.execute("DELETE FROM alerts WHERE id > 157")
-                con.execute("DELETE FROM operational_events WHERE id > 29")
-                placeholders = ",".join("?" for _ in DEMO_TRAIN_IDS)
-                con.execute(f"DELETE FROM train_positions WHERE train_id NOT IN ({placeholders})", list(DEMO_TRAIN_IDS))
-                con.execute(f"DELETE FROM eta_predictions WHERE train_id NOT IN ({placeholders})", list(DEMO_TRAIN_IDS))
-                con.commit()
-                con.close()
-            except Exception:
-                pass
-
     # MongoDB cleanup
     if settings.MONGODB_URL:
         try:

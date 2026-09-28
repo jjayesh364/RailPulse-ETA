@@ -12,9 +12,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 
-from sqlalchemy import select
-from app.database.db import async_session_maker
-from app.models.database_models import ETAPrediction, TrainPosition, RouteStop, Train
+from app.models.runtime_models import TrainPosition
 from app.database.mongodb import (
     get_mongo_db,
     COLL_TRAIN_POSITIONS,
@@ -50,126 +48,83 @@ class ETAService:
         return self.predictor is not None and self.predictor.is_model_loaded()
 
     async def _get_cached_eta(self, train_id: str, station_code: str) -> Optional[dict]:
-        """Retrieve a cached ETA prediction from MongoDB (primary) or SQLite (fallback)."""
+        """Retrieve a cached ETA prediction from MongoDB."""
         db = get_mongo_db()
-        if db is not None:
-            doc = await db[COLL_ETA_PREDICTIONS].find_one(
-                {"train_id": train_id, "station_code": station_code}
-            )
-            if doc:
-                return doc
-            return None
-
-        # SQLite fallback
-        async with async_session_maker() as session:
-            result = await session.execute(
-                select(ETAPrediction)
-                .where(ETAPrediction.train_id == train_id)
-                .where(ETAPrediction.station_code == station_code)
-            )
-            row = result.scalar_one_or_none()
-            if row is None:
-                return None
-            try:
-                factors = json.loads(row.factors_json) if row.factors_json else []
-            except (json.JSONDecodeError, TypeError):
-                factors = []
-            return {
-                "train_id": row.train_id,
-                "station_code": row.station_code,
-                "station_name": row.station_name,
-                "scheduled_arrival": row.scheduled_arrival,
-                "predicted_arrival": row.predicted_arrival,
-                "predicted_delay_minutes": row.predicted_delay_minutes,
-                "confidence": row.confidence,
-                "confidence_level": row.confidence_level,
-                "factors": factors,
-                "created_at": row.created_at,
-            }
+        if db is None:
+            raise RuntimeError("MongoDB is unavailable")
+        return await db[COLL_ETA_PREDICTIONS].find_one(
+            {"train_id": train_id, "station_code": station_code}
+        )
 
     async def calculate_all_upcoming_etas(self, train_id: str) -> List[dict]:
         """Calculate ETAs for all upcoming stations for a train."""
         # Get current position
         db = get_mongo_db()
-        pos = None
-        if db is not None:
-            pos_doc = await db[COLL_TRAIN_POSITIONS].find_one({"_id": train_id})
-            if pos_doc:
-                pos = TrainPosition(
-                    train_id=pos_doc.get("train_id", pos_doc.get("_id")),
-                    latitude=float(pos_doc.get("latitude", 0.0)),
-                    longitude=float(pos_doc.get("longitude", 0.0)),
-                    speed_kmph=float(pos_doc.get("speed_kmph", 0.0)),
-                    delay_minutes=float(pos_doc.get("delay_minutes", 0.0)),
-                    status=str(pos_doc.get("status", "On Time")),
-                    current_station_code=pos_doc.get("current_station_code"),
-                    current_station_name=pos_doc.get("current_station_name"),
-                    next_station_code=pos_doc.get("next_station_code"),
-                    next_station_name=pos_doc.get("next_station_name"),
-                    distance_covered_km=float(pos_doc.get("distance_covered_km", 0.0)),
-                    total_distance_km=float(pos_doc.get("total_distance_km", 0.0)),
-                    last_updated=pos_doc.get("last_updated"),
-                    current_stop_index=int(pos_doc.get("current_stop_index", 0)),
-                    at_station=bool(pos_doc.get("at_station", True)),
-                    dwell_remaining_seconds=float(pos_doc.get("dwell_remaining_seconds", 0.0)),
-                )
-        if not pos:
-            try:
-                async with async_session_maker() as session:
-                    pos_result = await session.execute(
-                        select(TrainPosition).where(TrainPosition.train_id == train_id)
-                    )
-                    pos = pos_result.scalar_one_or_none()
-            except Exception:
-                pos = None
+        if db is None:
+            raise RuntimeError("MongoDB is unavailable")
 
-        # Get train info from MongoDB first, with SQLite fallback
+        pos = None
+        pos_doc = await db[COLL_TRAIN_POSITIONS].find_one({"_id": train_id})
+        if not pos_doc:
+            pos_doc = await db[COLL_TRAIN_POSITIONS].find_one({"train_id": train_id})
+        if pos_doc:
+            pos = TrainPosition(
+                train_id=pos_doc.get("train_id", pos_doc.get("_id")),
+                latitude=float(pos_doc.get("latitude", 0.0)),
+                longitude=float(pos_doc.get("longitude", 0.0)),
+                speed_kmph=float(pos_doc.get("speed_kmph", 0.0)),
+                delay_minutes=float(pos_doc.get("delay_minutes", 0.0)),
+                status=str(pos_doc.get("status", "On Time")),
+                current_station_code=pos_doc.get("current_station_code"),
+                current_station_name=pos_doc.get("current_station_name"),
+                next_station_code=pos_doc.get("next_station_code"),
+                next_station_name=pos_doc.get("next_station_name"),
+                distance_covered_km=float(pos_doc.get("distance_covered_km", 0.0)),
+                total_distance_km=float(pos_doc.get("total_distance_km", 0.0)),
+                last_updated=pos_doc.get("last_updated"),
+                current_stop_index=int(pos_doc.get("current_stop_index", 0)),
+                at_station=bool(pos_doc.get("at_station", True)),
+                dwell_remaining_seconds=float(pos_doc.get("dwell_remaining_seconds", 0.0)),
+            )
+
+
+        # Get train info from MongoDB
         train = None
         upcoming_stops = []
 
-        if db is not None:
-            try:
-                train_doc = await db[COLL_TRAINS].find_one({"_id": train_id})
-                if not train_doc:
-                    train_doc = await db[COLL_TRAINS].find_one({"train_id": train_id})
-                if train_doc:
-                    train = type("TrainObj", (), {
-                        "train_id": train_doc["train_id"],
-                        "train_name": train_doc["train_name"],
-                        "train_number": train_doc["train_number"],
-                        "train_type": train_doc.get("train_type", "Superfast Express"),
-                        "avg_speed_kmph": float(train_doc.get("avg_speed_kmph", 60.0)),
-                        "max_speed_kmph": float(train_doc.get("max_speed_kmph", 130.0)),
-                        "total_distance_km": float(train_doc.get("total_distance_km", 0.0)),
+        try:
+            train_doc = await db[COLL_TRAINS].find_one({"_id": train_id})
+            if not train_doc:
+                train_doc = await db[COLL_TRAINS].find_one({"train_id": train_id})
+            if train_doc:
+                train = type("TrainObj", (), {
+                    "train_id": train_doc["train_id"],
+                    "train_name": train_doc["train_name"],
+                    "train_number": train_doc["train_number"],
+                    "train_type": train_doc.get("train_type", "Superfast Express"),
+                    "zone": train_doc.get("zone", "NR"),
+                    "avg_speed_kmph": float(train_doc.get("avg_speed_kmph", 60.0)),
+                    "max_speed_kmph": float(train_doc.get("max_speed_kmph", 130.0)),
+                    "total_distance_km": float(train_doc.get("total_distance_km", 0.0)),
+                })()
+                curr_idx = pos.current_stop_index if pos else 0
+                raw_stops = train_doc.get("stops", [])
+                sorted_stops = sorted(raw_stops, key=lambda s: int(s.get("stop_number", 0)))
+                upcoming_stops = [
+                    type("RouteStopObj", (), {
+                        "stop_number": int(s.get("stop_number", 0)),
+                        "station_code": s.get("station_code"),
+                        "station_name": s.get("station_name"),
+                        "arrival": s.get("arrival"),
+                        "departure": s.get("departure"),
+                        "distance_from_source": float(s.get("distance_from_source") or 0.0),
+                        "halt_minutes": int(s.get("halt_minutes", 2)),
                     })()
-                    curr_idx = pos.current_stop_index if pos else 0
-                    raw_stops = train_doc.get("stops", [])
-                    sorted_stops = sorted(raw_stops, key=lambda s: int(s.get("stop_number", 0)))
-                    upcoming_stops = [
-                        type("RouteStopObj", (), {
-                            "stop_number": int(s.get("stop_number", 0)),
-                            "station_code": s.get("station_code"),
-                            "station_name": s.get("station_name"),
-                            "arrival": s.get("arrival"),
-                            "departure": s.get("departure"),
-                            "distance_from_source": float(s.get("distance_from_source") or 0.0),
-                            "halt_minutes": int(s.get("halt_minutes", 2)),
-                        })()
-                        for s in sorted_stops
-                        if int(s.get("stop_number", 0)) > curr_idx
-                    ]
-            except Exception as e:
-                logger.warning(f"[ETAService] MongoDB demo train read failed ({e}), falling back to SQLite.")
-
-        if not train:
-            try:
-                async with async_session_maker() as session:
-                    train_result = await session.execute(
-                        select(Train).where(Train.train_id == train_id)
-                    )
-                    train = train_result.scalar_one_or_none()
-            except Exception:
-                train = None
+                    for s in sorted_stops
+                    if int(s.get("stop_number", 0)) > curr_idx
+                ]
+        except Exception as e:
+            logger.warning(f"[ETAService] MongoDB demo train read failed: {e}")
 
         if not train or not pos:
             # Check real train catalog
@@ -181,40 +136,14 @@ class ETAService:
             real_pos = await real_source.get_position(train_id)
 
             real_stops_raw = []
-            if db is not None:
-                try:
-                    rt_doc = await db[COLL_REAL_TRAINS].find_one({"_id": train_id})
-                    if not rt_doc:
-                        rt_doc = await db[COLL_REAL_TRAINS].find_one({"train_number": train_id})
-                    if rt_doc and rt_doc.get("stops"):
-                        real_stops_raw = rt_doc["stops"]
-                except Exception as e:
-                    logger.warning(f"[ETAService] MongoDB real_train stops read failed ({e}), falling back.")
-
-            if not real_stops_raw:
-                try:
-                    async with async_session_maker() as session:
-                        from app.models.database_models import RealTrainStop
-                        real_stops_res = await session.execute(
-                            select(RealTrainStop)
-                            .where(RealTrainStop.train_number == train_id)
-                            .order_by(RealTrainStop.sequence)
-                        )
-                        sqlite_stops = real_stops_res.scalars().all()
-                        real_stops_raw = [
-                            {
-                                "sequence": rs.sequence,
-                                "station_code": rs.station_code,
-                                "station_name": rs.station_name,
-                                "arrival_time": rs.arrival_time,
-                                "departure_time": rs.departure_time,
-                                "distance": rs.distance,
-                                "halt_minutes": rs.halt_minutes,
-                            }
-                            for rs in sqlite_stops
-                        ]
-                except Exception:
-                    real_stops_raw = []
+            try:
+                rt_doc = await db[COLL_REAL_TRAINS].find_one({"_id": train_id})
+                if not rt_doc:
+                    rt_doc = await db[COLL_REAL_TRAINS].find_one({"train_number": train_id})
+                if rt_doc and rt_doc.get("stops"):
+                    real_stops_raw = rt_doc["stops"]
+            except Exception as e:
+                logger.warning(f"[ETAService] MongoDB real_train stops read failed: {e}")
 
             if not real_stops_raw:
                 return []
@@ -297,25 +226,11 @@ class ETAService:
                 })
             return etas
 
-        # If upcoming_stops not yet loaded from MongoDB, load from SQLite
-        if not upcoming_stops:
-            try:
-                async with async_session_maker() as session:
-                    stops_result = await session.execute(
-                        select(RouteStop)
-                        .where(RouteStop.train_id == train_id)
-                        .where(RouteStop.stop_number > pos.current_stop_index)
-                        .order_by(RouteStop.stop_number)
-                    )
-                    upcoming_stops = stops_result.scalars().all()
-            except Exception:
-                upcoming_stops = []
-
         etas = []
         cumulative_delay = pos.delay_minutes
 
         for stop in upcoming_stops:
-            # Check cached ETA from MongoDB (or SQLite fallback)
+            # Check cached ETA from MongoDB
             cached = await self._get_cached_eta(train_id, stop.station_code)
             if cached and cached.get("created_at"):
                 cached_dt = cached["created_at"]
@@ -429,34 +344,21 @@ class ETAService:
         return etas
 
     async def get_prediction_factors(self, train_id: str) -> List[dict]:
-        """Get prediction factors for a train from MongoDB (primary) or SQLite (fallback)."""
+        """Get prediction factors for a train from MongoDB."""
         db = get_mongo_db()
-        if db is not None:
-            # Fetch the most recently updated prediction for this train
-            cursor = db[COLL_ETA_PREDICTIONS].find(
-                {"train_id": train_id}
-            ).sort("created_at", -1).limit(1)
-            docs = await cursor.to_list(length=1)
-            if docs:
-                doc = docs[0]
-                factors = doc.get("factors", [])
-                if isinstance(factors, list) and factors:
-                    return factors
-        else:
-            async with async_session_maker() as session:
-                eta_result = await session.execute(
-                    select(ETAPrediction)
-                    .where(ETAPrediction.train_id == train_id)
-                    .order_by(ETAPrediction.created_at.desc())
-                    .limit(1)
-                )
-                eta = eta_result.scalar_one_or_none()
+        if db is None:
+            raise RuntimeError("MongoDB is unavailable")
 
-                if eta and eta.factors_json:
-                    try:
-                        return json.loads(eta.factors_json)
-                    except (json.JSONDecodeError, TypeError):
-                        pass
+        # Fetch the most recently updated prediction for this train
+        cursor = db[COLL_ETA_PREDICTIONS].find(
+            {"train_id": train_id}
+        ).sort("created_at", -1).limit(1)
+        docs = await cursor.to_list(length=1)
+        if docs:
+            doc = docs[0]
+            factors = doc.get("factors", [])
+            if isinstance(factors, list) and factors:
+                return factors
 
         return [{
             "factor_name": "Normal Operations",

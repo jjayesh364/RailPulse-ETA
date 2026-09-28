@@ -4,17 +4,14 @@ import pytest
 from unittest.mock import MagicMock, patch
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.database.db import init_db
-from app.database.seed import seed_db
-from app.database.seed_users import seed_demo_users
 from app.services.sarvam_service import SarvamService
 
 
 @pytest.fixture
 async def base_client():
-    await init_db()
-    await seed_db()
-    await seed_demo_users()
+    from app.database.mongodb import init_mongo, get_mongo_db
+    if get_mongo_db() is None:
+        await init_mongo()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="https://test") as ac:
         yield ac
